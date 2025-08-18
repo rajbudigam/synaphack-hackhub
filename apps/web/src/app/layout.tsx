@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./tw.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
