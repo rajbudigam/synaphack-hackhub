@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens (light/dark via next-themes) */
+:root {
+  --bg: 0 0% 100%;
+  --fg: 224 71% 4%;
+  --card: 0 0% 100%;
+  --muted: 220 14% 96%;
+  --border: 214 12% 90%;
+  --ring: 221 83% 53%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+}
+
+[data-theme="dark"] {
+  --bg: 224 71% 4%;
+  --fg: 210 40% 98%;
+  --card: 222 47% 11%;
+  --muted: 215 27% 16%;
+  --border: 215 27% 26%;
+  --ring: 221 83% 53%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+}
+
+/* App shell polish */
+html, body, :root { height: 100%; }
+body {
+  @apply bg-[hsl(var(--bg))] text-[hsl(var(--fg))] antialiased;
+}
