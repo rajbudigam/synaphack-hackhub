@@ -2,9 +2,9 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    "./src/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx,js,jsx}",
+    "./app/**/*.{ts,tsx,js,jsx}",
+    "./components/**/*.{ts,tsx,js,jsx}",
   ],
   theme: {
     extend: {
@@ -20,14 +20,9 @@ module.exports = {
           foreground: "hsl(var(--primary-foreground))",
         },
       },
-      borderRadius: {
-        xl: "1rem",
-        "2xl": "1.25rem",
-      },
-      boxShadow: {
-        soft: "0 10px 30px rgba(0,0,0,0.06)",
-      },
+      borderRadius: { xl: "1rem", "2xl": "1.25rem" },
+      boxShadow: { soft: "0 10px 30px rgba(0,0,0,0.06)" },
     },
   },
   plugins: [],
-}
+};
