@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // dev-friendly. Swap to "sqlserver" for Azure later.
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  teams         TeamMember[]
+  scores        Score[]
+  audit         AuditLog[]
+  registrations Registration[]
+}
+
+model Event {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  name          String
+  description   String?
+  mode          String // "online" | "offline" | "hybrid"
+  startsAt      DateTime
+  endsAt        DateTime
+  tracks        Track[]
+  rounds        Round[]
+  teams         Team[]
+  registrations Registration[]
+  submissions   Submission[]
+  createdAt     DateTime       @default(now())
+}
+
+model Track {
+  id      String @id @default(cuid())
+  name    String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+}
+
+model Round {
+  id       String   @id @default(cuid())
+  order    Int
+  startsAt DateTime
+  endsAt   DateTime
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId  String
+
+  // back-relations
+  submissions Submission[]
+  rubric      Rubric?
+  scores      Score[] // <-- added; fixes your P1012 on Score.round
+}
+
+model Team {
+  id            String         @id @default(cuid())
+  name          String
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId       String
+  members       TeamMember[]
+  submissions   Submission[]
+  registrations Registration[]
+}
+
+model TeamMember {
+  id   String @id @default(cuid())
+  role String // "owner" | "member"
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  @@unique([userId, teamId])
+}
+
+model Registration {
+  id     String @id @default(cuid())
+  status String // "pending" | "approved" | "waitlist"
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String?
+}
+
+model Submission {
+  id       String  @id @default(cuid())
+  title    String
+  repoUrl  String?
+  videoUrl String?
+  status   String // "draft" | "submitted" | "final"
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  roundId String?
+
+  scores    Score[]
+  createdAt DateTime @default(now())
+}
+
+model Rubric {
+  id       String      @id @default(cuid())
+  name     String
+  criteria Criterion[]
+
+  // one-to-one with Round — FK must be unique
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  roundId String? @unique
+}
+
+model Criterion {
+  id       String @id @default(cuid())
+  label    String
+  weight   Float  @default(1.0)
+  scaleMax Int    @default(10)
+
+  rubric   Rubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  rubricId String
+}
+
+model Score {
+  id      String  @id @default(cuid())
+  value   Int
+  comment String?
+
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String
+
+  judge   User   @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  judgeId String
+
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  roundId String?
+
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId   String?
+  action    String
+  target    String?
+  meta      Json?
+  createdAt DateTime @default(now())
+}
