@@ -1,0 +1,35 @@
+import { listEvents } from "@/src/server/queries/events";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+
+export default async function EventsPage() {
+  const events = await listEvents();
+  return (
+    <div className="grid gap-6 lg:grid-cols-3">
+      <Card className="lg:col-span-2">
+        <CardHeader><CardTitle>All events</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          {events.map((e) => (
+            <Link
+              key={e.id}
+              href={`/events/${e.slug}`}
+              className="block rounded-xl border border-[hsl(var(--border))] px-4 py-3 hover:bg-[hsl(var(--muted))]"
+            >
+              <div className="flex items-center justify-between">
+                <div className="text-base font-medium">{e.name}</div>
+                <div className="text-sm opacity-70">
+                  {new Intl.DateTimeFormat(undefined, { month: "short", day: "2-digit" }).format(e.startsAt)}
+                </div>
+              </div>
+              {e.tracks.length > 0 && (
+                <div className="mt-1 text-sm opacity-70">
+                  Tracks: {e.tracks.map((t) => t.name).join(" • ")}
+                </div>
+              )}
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>
