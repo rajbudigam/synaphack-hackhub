@@ -1,4 +1,4 @@
-import { getEventBySlug } from "@/src/server/queries/events";
+import { getEventBySlug } from "@/server/queries/events";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

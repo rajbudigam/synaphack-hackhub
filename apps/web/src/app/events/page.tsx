@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listEvents } from "@/src/server/queries/events";
+import { listEvents } from "@/server/queries/events";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default async function EventsPage() {
