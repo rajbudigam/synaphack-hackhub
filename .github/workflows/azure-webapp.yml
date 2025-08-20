@@ -14,24 +14,25 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          # point cache at your app's lockfile
           cache-dependency-path: apps/web/pnpm-lock.yaml
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
+      # Ensure pnpm exists on PATH
+      - name: Enable pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10 --activate
+          pnpm -v
 
-      # Install at the repo root or just the app – choose ONE.
-      # If your lockfile lives under apps/web, simplest is install inside apps/web:
-      - name: Install (web)
+      # Install at the app (your lockfile is under apps/web)
+      - name: Install
         working-directory: apps/web
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build (web)
+      - name: Build
         working-directory: apps/web
         run: pnpm build
 
+      # Package Next.js standalone output for App Service
       - name: Prepare deploy folder (standalone)
         working-directory: apps/web
         run: |
