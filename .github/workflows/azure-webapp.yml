@@ -1,4 +1,5 @@
 name: Deploy Web (Next.js) to Azure App Service
+
 on:
   push:
     branches: [ main ]
@@ -6,59 +7,63 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install pnpm
-        run: npm install -g pnpm@10
-
-      - name: Corepack sanity
+      - name: Install pnpm & enable Corepack
         run: |
+          npm install -g pnpm@10
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Install once at ROOT (workspace-aware)
-      - name: Install (workspace root)
+      # Install once at repo root (workspace-aware)
+      - name: Install deps (root)
         run: pnpm install --frozen-lockfile
 
-      # Generate Prisma client (needs DATABASE_URL even for sqlite)
-      - name: Prisma generate (web)
+      # Prisma client: generate using a build-only SQLite URL
+      - name: Prisma generate (apps/web)
         working-directory: apps/web
         env:
           DATABASE_URL: file:./prisma/dev.db
         run: pnpm prisma generate
 
-      # Create the sqlite DB and seed it for demo
-      - name: Prisma db push & seed (sqlite demo)
+      # Optional: create a tiny SQLite DB for build-time safety.
+      # This is NOT deployed; runtime will use Azure App Settings.
+      - name: Prisma db push & seed (build-only sqlite)
         working-directory: apps/web
         env:
           DATABASE_URL: file:./prisma/dev.db
         run: |
           set -e
-          echo "cwd=$(pwd)"
           mkdir -p prisma
           pnpm prisma db push
-          pnpm prisma db seed
-          echo "Contents of prisma/:"
-          ls -la prisma
-          echo "Size of dev.db:"
-          ls -lh prisma/dev.db
+          # Seed only if your seed file doesn't assume Azure SQL specifics
+          pnpm prisma db seed || true
+          ls -la prisma || true
 
-      # Build Next.js (needs Clerk + DATABASE_URL in env)
-      - name: Build (web)
+      # Build the Next.js app (standalone). Provide any build-time envs you need.
+      - name: Build (apps/web)
         working-directory: apps/web
         env:
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           DATABASE_URL: file:./prisma/dev.db
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
         run: pnpm build
 
-      # Package Next.js standalone + the sqlite DB
-      - name: Prepare deploy folder (standalone)
+      # Guard: ensure standalone was produced
+      - name: Assert standalone output exists
+        working-directory: apps/web
+        run: |
+          test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure next.config has output: 'standalone'." && exit 1)
+
+      # Prepare minimal runtime artifact (standalone + static + public)
+      - name: Prepare deploy folder
         working-directory: apps/web
         run: |
           rm -rf ../site && mkdir -p ../site
@@ -66,9 +71,7 @@ jobs:
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
           cp -r public ../site/public
-          # ship the prisma folder (contains dev.db)
-          mkdir -p ../site/prisma
-          cp -r prisma/dev.db ../site/prisma/dev.db
+          # DO NOT copy prisma/dev.db — runtime uses Azure App Settings DATABASE_URL
 
       - name: Zip artifact
         working-directory: apps
@@ -76,9 +79,24 @@ jobs:
           cd site
           zip -r ../app.zip .
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+      # === Deploy with Service Principal (no publish profile) ===
+      - name: Azure Login
+        uses: azure/login@v1
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: apps/app.zip
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set startup command (node server.js)
+        run: |
+          az webapp config set -g hackhub-rgv -n "${{ secrets.AZURE_WEBAPP_NAME }}" --startup-file "node server.js"
+
+      - name: Deploy to Azure Web App (zip deploy)
+        run: |
+          az webapp deploy \
+            --resource-group hackhub-rgv \
+            --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
+            --src-path apps/app.zip \
+            --type zip
+
+      # Optional but handy
+      - name: Restart app
+        run: az webapp restart -g hackhub-rgv -n "${{ secrets.AZURE_WEBAPP_NAME }}"
