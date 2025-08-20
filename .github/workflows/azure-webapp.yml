@@ -122,9 +122,9 @@ jobs:
           audience: api://AzureADTokenExchange
 
       - name: Ensure Azure App Service settings (set WEBSITES_PORT and disable server-side build)
-         run: |
+        run: |
            az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
-         env:
+        env:
            AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
            AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
            AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
