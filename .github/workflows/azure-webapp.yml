@@ -1,5 +1,4 @@
 name: Deploy Web (Next.js) to Azure App Service
-
 on:
   push:
     branches: [ main ]
@@ -11,52 +10,63 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install pnpm & enable Corepack
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+
+      - name: Corepack sanity
         run: |
-          npm install -g pnpm@10
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Install once at repo root (workspace-aware)
-      - name: Install deps (root)
+      - name: Install (workspace root)
         run: pnpm install --frozen-lockfile
 
-      # Prisma client generation (uses SQL Server URL, NOT sqlite)
-      - name: Prisma generate (apps/web)
-        working-directory: apps/web
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm prisma generate
-
-      # Build the Next.js app (standalone)
+      # Build web (uses your SQL Server URL at build time; add this secret in repo settings)
       - name: Build (apps/web)
         working-directory: apps/web
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm build
 
-      # Guard: ensure standalone output exists
-      - name: Assert standalone output exists
+      # Assert standalone output exists (root OR monorepo path)
+      - name: Assert standalone server path
         working-directory: apps/web
         run: |
-          test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure next.config has output: 'standalone'." && exit 1)
+          set -e
+          if [ -f .next/standalone/server.js ]; then
+            echo "SERVER_PATH=server.js" >> $GITHUB_ENV
+            echo "Detected: .next/standalone/server.js"
+          elif [ -f .next/standalone/apps/web/server.js ]; then
+            echo "SERVER_PATH=apps/web/server.js" >> $GITHUB_ENV
+            echo "Detected: .next/standalone/apps/web/server.js"
+          else
+            echo "ERROR: standalone server.js not found in either expected location."
+            ls -R .next || true
+            exit 1
+          fi
 
-      # Prepare minimal runtime artifact (standalone + static + public)
+      # Prepare deploy folder (standalone)
       - name: Prepare deploy folder
         working-directory: apps/web
         run: |
+          set -e
           rm -rf ../site && mkdir -p ../site
+          # copy the traced standalone tree
           cp -r .next/standalone/* ../site/
+          # static assets
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
+          # public assets
           cp -r public ../site/public
+          # write a hint with the resolved server path (for troubleshooting)
+          echo "$SERVER_PATH" > ../site/SERVER_PATH.txt
+          echo "Resolved SERVER_PATH=$SERVER_PATH"
 
       - name: Zip artifact
         working-directory: apps
@@ -64,23 +74,9 @@ jobs:
           cd site
           zip -r ../app.zip .
 
-      # Deploy with Service Principal (no publish profile needed)
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Set startup command (node server.js)
-        run: |
-          az webapp config set -g hackhub-rgv -n "${{ secrets.AZURE_WEBAPP_NAME }}" --startup-file "node server.js"
-
-      - name: Deploy to Azure Web App (zip deploy)
-        run: |
-          az webapp deploy \
-            --resource-group hackhub-rgv \
-            --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
-            --src-path apps/app.zip \
-            --type zip
-
-      - name: Restart app
-        run: az webapp restart -g hackhub-rgv -n "${{ secrets.AZURE_WEBAPP_NAME }}"
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: apps/app.zip
