@@ -6,37 +6,33 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      # Set up Node (no pnpm caching here to avoid the PATH race)
       - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Install pnpm first so it's on PATH
       - name: Install pnpm
         run: npm install -g pnpm@10
 
-      # (Optional) Also activate via Corepack; shows pnpm version for sanity
-      - name: Enable pnpm via Corepack
+      - name: Corepack sanity
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Install dependencies in the app directory (where your lockfile lives)
-      - name: Install dependencies
-        working-directory: apps/web
-        run: pnpm install --no-frozen-lockfile
+      - name: Install (workspace root)
+        run: pnpm install --frozen-lockfile
 
-      # Build Next.js
-      - name: Build
+      - name: Prisma generate (web)
+        working-directory: apps/web
+        run: pnpm prisma generate
+
+      - name: Build (web)
         working-directory: apps/web
         run: pnpm build
 
-      # Package Next.js standalone output for App Service
       - name: Prepare deploy folder (standalone)
         working-directory: apps/web
         run: |
