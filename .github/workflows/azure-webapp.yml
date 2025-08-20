@@ -13,7 +13,6 @@ jobs:
 
     env:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      # Must be SQL Server URL: sqlserver://...;database=...;user=...;password=...;encrypt=true;trustServerCertificate=false
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
@@ -37,7 +36,6 @@ jobs:
       - name: Install deps (root) - allow lockfile drift
         run: pnpm install --no-frozen-lockfile
 
-      # Generate Prisma client (needs DATABASE_URL present)
       - name: Prisma generate (web)
         working-directory: apps/web
         run: pnpm exec prisma generate
@@ -48,12 +46,8 @@ jobs:
           set -e
           rm -rf .next
           pnpm build
-          echo "=== .next (top) ==="
-          ls -la .next || true
-          echo "=== .next/standalone (top) ==="
-          ls -la .next/standalone || true
-          echo "=== find server.js under .next/standalone (may be nested) ==="
-          find .next/standalone -maxdepth 4 -name server.js -print || true
+          echo "=== .next/standalone (top) ==="; ls -la .next/standalone || true
+          echo "=== find server.js under .next/standalone ==="; find .next/standalone -maxdepth 4 -name server.js -print || true
 
       - name: Resolve standalone root
         id: resolve
@@ -65,7 +59,6 @@ jobs:
             echo "root=$ROOT" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # find nested server.js (monorepo builds sometimes nest under apps/<pkg>)
           FOUND=$(find "$ROOT" -maxdepth 4 -type f -name server.js | head -n1 || true)
           if [ -z "$FOUND" ]; then
             echo "ERROR: server.js not found under $ROOT"
@@ -81,28 +74,14 @@ jobs:
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
-
-          # copy the standalone bundle into site/
           cp -r "${{ steps.resolve.outputs.root }}"/. ../site/
-
-          # copy static assets and public
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static || true
           cp -r public ../site/public || true
-
-          # Install production dependencies for the server into this runner (so we can package node_modules)
-          # Use --no-frozen-lockfile to avoid CI lockfile mismatch; this installs only production deps.
-          pnpm install --prod --no-frozen-lockfile
-
-          # create compressed node_modules tarball at deploy root (Azure startup script expects this)
-          tar -C . -czf ../site/node_modules.tar.gz node_modules
-
-          # Sanity checks
-          echo "== site root listing =="
+          # *** FIX: pack standalone node_modules ***
+          tar -C "${{ steps.resolve.outputs.root }}" -czf ../site/node_modules.tar.gz node_modules
           ls -la ../site | sed -n '1,200p'
-          echo "== check server.js exists =="
           test -f ../site/server.js
-          echo "== check node_modules.tar.gz exists =="
           test -f ../site/node_modules.tar.gz
 
       - name: Zip artifact
@@ -112,7 +91,6 @@ jobs:
           cd site
           zip -r ../app.zip .
 
-      # Login to Azure via OIDC (no client secret required if federated credential configured)
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -121,13 +99,9 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           audience: api://AzureADTokenExchange
 
-      - name: Ensure Azure App Service settings (set WEBSITES_PORT and disable server-side build)
+      - name: Ensure Azure App Service settings
         run: |
-           az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
-        env:
-           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
