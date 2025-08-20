@@ -29,8 +29,10 @@ jobs:
         working-directory: apps/web
         run: pnpm prisma generate
 
-      - name: Build (web)
+      - name: Build
         working-directory: apps/web
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
         run: pnpm build
 
       - name: Prepare deploy folder (standalone)
