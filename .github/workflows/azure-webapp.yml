@@ -27,36 +27,22 @@ jobs:
       - name: Install deps (root)
         run: pnpm install --frozen-lockfile
 
-      # Prisma client: generate using a build-only SQLite URL
+      # Prisma client generation (uses SQL Server URL, NOT sqlite)
       - name: Prisma generate (apps/web)
         working-directory: apps/web
         env:
-          DATABASE_URL: file:./prisma/dev.db
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm prisma generate
 
-      # Optional: create a tiny SQLite DB for build-time safety.
-      # This is NOT deployed; runtime will use Azure App Settings.
-      - name: Prisma db push & seed (build-only sqlite)
-        working-directory: apps/web
-        env:
-          DATABASE_URL: file:./prisma/dev.db
-        run: |
-          set -e
-          mkdir -p prisma
-          pnpm prisma db push
-          # Seed only if your seed file doesn't assume Azure SQL specifics
-          pnpm prisma db seed || true
-          ls -la prisma || true
-
-      # Build the Next.js app (standalone). Provide any build-time envs you need.
+      # Build the Next.js app (standalone)
       - name: Build (apps/web)
         working-directory: apps/web
         env:
-          DATABASE_URL: file:./prisma/dev.db
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
         run: pnpm build
 
-      # Guard: ensure standalone was produced
+      # Guard: ensure standalone output exists
       - name: Assert standalone output exists
         working-directory: apps/web
         run: |
@@ -71,7 +57,6 @@ jobs:
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
           cp -r public ../site/public
-          # DO NOT copy prisma/dev.db — runtime uses Azure App Settings DATABASE_URL
 
       - name: Zip artifact
         working-directory: apps
@@ -79,7 +64,7 @@ jobs:
           cd site
           zip -r ../app.zip .
 
-      # === Deploy with Service Principal (no publish profile) ===
+      # Deploy with Service Principal (no publish profile needed)
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -97,6 +82,5 @@ jobs:
             --src-path apps/app.zip \
             --type zip
 
-      # Optional but handy
       - name: Restart app
         run: az webapp restart -g hackhub-rgv -n "${{ secrets.AZURE_WEBAPP_NAME }}"
