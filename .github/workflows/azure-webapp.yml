@@ -7,11 +7,6 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
-    env:
-      # App expects these at build time (adjust to your setup)
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }} # <-- SQL Server URL (sqlserver://...;user=...;password=...;database=...)
-
     steps:
       - uses: actions/checkout@v4
 
@@ -20,69 +15,71 @@ jobs:
           node-version: 20
 
       - name: Install pnpm
-        run: npm i -g pnpm@10
+        run: npm install -g pnpm@10
 
-      - name: Corepack sanity (optional)
+      - name: Enable Corepack (pnpm)
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Install at repo root (monorepo-aware)
-      - name: Install deps (root)
+      # Install once at ROOT (workspace-aware)
+      - name: Install deps (workspace root)
         run: pnpm install --frozen-lockfile
 
-      # Generate Prisma client (uses DATABASE_URL from env above)
-      - name: Prisma generate (web)
+      # Generate Prisma client (doesn't connect to DB)
+      - name: Prisma generate (apps/web)
         working-directory: apps/web
+        env:
+          # SQL Server provider in schema – we supply the Azure SQL URL via secrets for safety
+          DATABASE_URL: ${{ secrets.AZURE_DATABASE_URL }}
         run: pnpm prisma generate
 
-      # Build Next.js **inside apps/web**
-      - name: Build (web)
+      # Build Next.js in apps/web with standalone output
+      - name: Show next.config.mjs (debug)
         working-directory: apps/web
-        run: |
-          rm -rf .next
-          pnpm build
-          # Debug: show what Next actually produced
-          echo "=== .next tree (top) ==="
-          ls -la .next | sed -n '1,200p'
-          echo "=== .next/standalone tree (top) ==="
-          ls -la .next/standalone | sed -n '1,200p' || true
+        run: cat next.config.mjs
 
-      # Verify standalone output AFTER build
-      - name: Verify standalone server.js
+      - name: Build (apps/web)
+        working-directory: apps/web
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.AZURE_DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+        run: pnpm build
+
+      # ✅ The check MUST run in apps/web
+      - name: Verify standalone output exists
         working-directory: apps/web
         run: |
           test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure apps/web/next.config.mjs has output:'standalone' and that the build ran in apps/web." && exit 1)
 
-      # Prepare minimal deploy folder
-      - name: Prepare deploy (standalone bundle)
+      # Prepare deployment bundle: standalone server + static + public
+      - name: Prepare deploy folder
         working-directory: apps/web
         run: |
           rm -rf ../site && mkdir -p ../site
-          # copy the standalone server + node_modules bundle
+          # copy minimal server bundle
           cp -r .next/standalone/* ../site/
-          # copy static assets and public
+          # static assets
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
+          # public assets
           cp -r public ../site/public
-          # Startup file is ../site/server.js
-          ls -la ../site | sed -n '1,200p'
+          # optional: startup shim (App Service can just run server.js)
+          echo "node server.js" > ../site/startup.sh
+          chmod +x ../site/startup.sh
+          ls -la ../site | sed -e 's/^/SITE: /'
 
       - name: Zip artifact
         working-directory: apps
-        run: zip -r app.zip site
-
-      # Login with service principal (since publish profile basic auth is disabled)
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        run: |
+          cd site
+          zip -r ../app.zip .
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: apps/app.zip
