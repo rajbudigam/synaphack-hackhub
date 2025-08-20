@@ -26,7 +26,7 @@ export default async function EventsPage() {
             </div>
             {e.tracks?.length ? (
               <p className="text-sm opacity-70 mt-1">
-                Tracks: {e.tracks.map(t => t.name).join(" • ")}
+                Tracks: {e.tracks.map((t: { name: string }) => t.name).join(" • ")}
               </p>
             ) : null}
           </Link>
