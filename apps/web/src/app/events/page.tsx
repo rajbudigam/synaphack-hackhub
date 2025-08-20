@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { listEvents, type EventListItem } from "@/server/queries/events";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
