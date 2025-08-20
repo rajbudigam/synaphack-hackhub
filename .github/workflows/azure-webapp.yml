@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Build-time envs
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }} # sqlserver://...;database=...;user=...;password=...;encrypt=true;trustServerCertificate=false
+      # Must be the SQL Server URL: sqlserver://...;database=...;user=...;password=...;encrypt=true;trustServerCertificate=false
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
       - uses: actions/checkout@v4
@@ -22,68 +22,76 @@ jobs:
       - name: Install pnpm
         run: npm i -g pnpm@10
 
-      - name: Enable Corepack (pnpm)
+      - name: Corepack sanity
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Make sure Prisma postinstall is allowed under pnpm
-      - name: Trust prisma scripts (pnpm)
-        run: |
-          echo '{ "trustedDependencies": ["@prisma/client","prisma"] }' > pnpm-allow-scripts.json
-          cat pnpm-allow-scripts.json
-
-      # Install at repo root (workspace-aware)
+      # Install deps at the repo root (workspace-aware)
       - name: Install deps (root)
         run: pnpm install --frozen-lockfile
 
-      # Generate Prisma client (uses DATABASE_URL from job env)
-      - name: Prisma generate (apps/web)
+      # Prisma needs DATABASE_URL present to generate client
+      - name: Prisma generate (web)
         working-directory: apps/web
         run: pnpm prisma generate
 
-      # Build Next.js in apps/web; next.config.mjs must have output:'standalone'
+      # Build strictly inside apps/web (so Next reads apps/web/next.config.mjs)
       - name: Build (apps/web)
         working-directory: apps/web
-        env:
-          NODE_ENV: production
         run: |
           rm -rf .next
           pnpm build
-          echo "=== .next top ==="; ls -la .next | sed -n '1,200p' || true
-          echo "=== .next/standalone top ==="; ls -la .next/standalone | sed -n '1,200p' || true
+          echo "=== .next (top) ==="
+          ls -la .next | sed -n '1,200p' || true
+          echo "=== .next/standalone (top) ==="
+          ls -la .next/standalone | sed -n '1,200p' || true
+          echo "=== find server.js under .next/standalone ==="
+          find .next/standalone -maxdepth 3 -name server.js -print || true
 
-      # Verify standalone output (check from the same folder)
-      - name: Verify standalone server.js
+      # Resolve where Next put server.js (monorepos may nest it under apps/web/)
+      - name: Resolve standalone root
+        id: resolve
         working-directory: apps/web
         run: |
-          test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure apps/web/next.config.mjs has output:'standalone' and that the build ran in apps/web." && exit 1)
+          set -e
+          ROOT=".next/standalone"
+          if [ -f "$ROOT/server.js" ]; then
+            echo "root=$ROOT" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          FOUND=$(find "$ROOT" -maxdepth 3 -type f -name server.js | head -n1 || true)
+          if [ -z "$FOUND" ]; then
+            echo "ERROR: server.js not found under $ROOT"
+            find "$ROOT" -maxdepth 3 -print || true
+            exit 1
+          fi
+          DIR=$(dirname "$FOUND")
+          echo "root=$DIR" >> $GITHUB_OUTPUT
+          echo "Resolved standalone root: $DIR"
 
-      # Prepare minimal deploy folder
+      # Prepare the deploy folder so server.js is at the root of the zip
       - name: Prepare deploy (standalone bundle)
         working-directory: apps/web
         run: |
+          set -e
           rm -rf ../site && mkdir -p ../site
-          # copy standalone server + node_modules bundle
-          cp -r .next/standalone/* ../site/
-          # static + public
+          # copy the resolved standalone root into site/
+          cp -r "${{ steps.resolve.outputs.root }}"/. ../site/
+          # static assets + public
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
-          cp -r public ../site/public
-          # helpful startup shim (App Service runs `node server.js`)
-          echo "node server.js" > ../site/startup.sh
-          chmod +x ../site/startup.sh
+          cp -r public ../site/public || true
+          # confirm server.js exists at deploy root
           ls -la ../site | sed -n '1,200p'
+          test -f ../site/server.js
 
-      # Zip the CONTENTS of ../site (not the folder name)
       - name: Zip artifact
         working-directory: apps
-        run: |
-          cd site
-          zip -r ../app.zip .
+        run: zip -r app.zip site
 
-      # Login with SP (publish profile disabled)
+      # Login using SP (publish profile disabled)
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -96,4 +104,3 @@ jobs:
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           package: apps/app.zip
-          startup-command: "node server.js"
