@@ -6,27 +6,30 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/web
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - uses: pnpm/action-setup@v4
         with:
           version: 10
 
-      - name: Install
-        run: pnpm install --frozen-lockfile
+      # Install once at the ROOT (workspace-aware)
+      - name: Install (workspace root)
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Build (standalone)
+      # Build the web app
+      - name: Build web
+        working-directory: apps/web
         run: pnpm build
 
-      - name: Prepare deploy folder
+      - name: Prepare deploy folder (standalone)
+        working-directory: apps/web
         run: |
           rm -rf ../site && mkdir -p ../site
           cp -r .next/standalone/* ../site/
@@ -35,8 +38,9 @@ jobs:
           cp -r public ../site/public
 
       - name: Zip artifact
+        working-directory: apps
         run: |
-          cd ../site
+          cd site
           zip -r ../app.zip .
 
       - name: Deploy to Azure Web App
@@ -44,4 +48,4 @@ jobs:
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: app.zip
+          package: apps/app.zip
