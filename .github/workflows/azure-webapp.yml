@@ -10,28 +10,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Set up Node (no pnpm caching here to avoid the PATH race)
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
-          cache-dependency-path: apps/web/pnpm-lock.yaml
 
+      # Install pnpm first so it's on PATH
       - name: Install pnpm
-        run: npm install -g pnpm
+        run: npm install -g pnpm@10
 
-
-      # Ensure pnpm exists on PATH
+      # (Optional) Also activate via Corepack; shows pnpm version for sanity
       - name: Enable pnpm via Corepack
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Install at the app (your lockfile is under apps/web)
-      - name: Install
+      # Install dependencies in the app directory (where your lockfile lives)
+      - name: Install dependencies
         working-directory: apps/web
         run: pnpm install --no-frozen-lockfile
 
+      # Build Next.js
       - name: Build
         working-directory: apps/web
         run: pnpm build
