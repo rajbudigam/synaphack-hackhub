@@ -16,6 +16,10 @@ jobs:
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+
       # Ensure pnpm exists on PATH
       - name: Enable pnpm via Corepack
         run: |
