@@ -3,6 +3,7 @@ import { listEvents, type EventListItem } from "@/server/queries/events";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+
 export default async function EventsPage() {
   const events: EventListItem[] = await listEvents();
 
