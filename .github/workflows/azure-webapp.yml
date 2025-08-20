@@ -73,17 +73,29 @@ jobs:
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
-          # copy the resolved standalone root into site/
+
+          # copy the standalone bundle into site/
           cp -r "${{ steps.resolve.outputs.root }}"/. ../site/
-          # static assets + public
+
+          # copy static assets and public
           mkdir -p ../site/.next/static
-          cp -r .next/static ../site/.next/static
+          cp -r .next/static ../site/.next/static || true
           cp -r public ../site/public || true
-          # remove build-time markers that make Oryx think it should build
-          rm -f ../site/package.json ../site/pnpm-lock.yaml ../site/yarn.lock ../site/package-lock.json
-          # confirm server.js exists at deploy root
+
+          # Install production server deps in apps/web/node_modules (ensures required runtime deps exist)
+          # This is executed inside the workflow runner, not in Azure; it installs production packages used by server.
+          pnpm install --prod --frozen-lockfile
+
+          # create compressed node_modules tarball at deploy root (Azure startup script expects node_modules.tar.gz)
+          tar -C . -czf ../site/node_modules.tar.gz node_modules
+
+          # Sanity checks
+          echo "== site root listing =="
           ls -la ../site | sed -n '1,200p'
+          echo "== check server.js exists =="
           test -f ../site/server.js
+          echo "== check node_modules.tar.gz exists =="
+          test -f ../site/node_modules.tar.gz
 
       - name: Zip artifact
         working-directory: apps
