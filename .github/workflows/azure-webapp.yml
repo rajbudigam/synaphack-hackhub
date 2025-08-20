@@ -13,18 +13,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: pnpm
+          # point cache at your app's lockfile
+          cache-dependency-path: apps/web/pnpm-lock.yaml
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 10
 
-      # Install once at the ROOT (workspace-aware)
-      - name: Install (workspace root)
+      # Install at the repo root or just the app – choose ONE.
+      # If your lockfile lives under apps/web, simplest is install inside apps/web:
+      - name: Install (web)
+        working-directory: apps/web
         run: pnpm install --no-frozen-lockfile
 
-      # Build the web app
-      - name: Build web
+      - name: Build (web)
         working-directory: apps/web
         run: pnpm build
 
