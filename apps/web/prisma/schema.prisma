@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver" 
+  provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
@@ -24,7 +24,7 @@ model Event {
   slug          String         @unique
   name          String
   description   String?
-  mode          String // "online" | "offline" | "hybrid"
+  mode          String
   startsAt      DateTime
   endsAt        DateTime
   tracks        Track[]
@@ -38,7 +38,7 @@ model Event {
 model Track {
   id      String @id @default(cuid())
   name    String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId String
 }
 
@@ -47,19 +47,18 @@ model Round {
   order    Int
   startsAt DateTime
   endsAt   DateTime
-  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event    Event    @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId  String
 
-  // back-relations
   submissions Submission[]
   rubric      Rubric?
-  scores      Score[] // <-- added; fixes your P1012 on Score.round
+  scores      Score[]
 }
 
 model Team {
   id            String         @id @default(cuid())
   name          String
-  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId       String
   members       TeamMember[]
   submissions   Submission[]
@@ -68,12 +67,12 @@ model Team {
 
 model TeamMember {
   id   String @id @default(cuid())
-  role String // "owner" | "member"
+  role String
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   userId String
 
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   teamId String
 
   @@unique([userId, teamId])
@@ -81,32 +80,41 @@ model TeamMember {
 
 model Registration {
   id     String @id @default(cuid())
-  status String // "pending" | "approved" | "waitlist"
+  status String
 
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId String
 
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   userId String?
 
-  team   Team?   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   teamId String?
 }
 
+/**
+ * IMPORTANT to satisfy SQL Server:
+ * - Keep exactly ONE referential action from Event → Submission.
+ * We keep the direct FK (Submission.event) as ON DELETE CASCADE.
+ * - The other paths (via Team and Round) must be NO ACTION.
+ */
 model Submission {
   id       String  @id @default(cuid())
   title    String
   repoUrl  String?
   videoUrl String?
-  status   String // "draft" | "submitted" | "final"
+  status   String
 
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  // ✅ Direct path we keep
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   eventId String
 
-  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // ❌ No referential action here (prevents Event→Team→Submission path)
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   teamId String
 
-  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  // ❌ No referential action here (prevents Event→Round→Submission path)
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   roundId String?
 
   scores    Score[]
@@ -118,8 +126,8 @@ model Rubric {
   name     String
   criteria Criterion[]
 
-  // one-to-one with Round — FK must be unique
-  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  // Round may be deleted with Event; do not push changes into other tables
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   roundId String? @unique
 }
 
@@ -129,22 +137,27 @@ model Criterion {
   weight   Float  @default(1.0)
   scaleMax Int    @default(10)
 
-  rubric   Rubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  rubric   Rubric @relation(fields: [rubricId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   rubricId String
 }
 
+/**
+ * For Score:
+ * - Keep submission CASCADE (delete a submission → delete its scores).
+ * - Make round NO ACTION so there’s no Round→Score referential action.
+ */
 model Score {
   id      String  @id @default(cuid())
   value   Int
   comment String?
 
-  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   submissionId String
 
-  judge   User   @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  judge   User   @relation(fields: [judgeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   judgeId String
 
-  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   roundId String?
 
   createdAt DateTime @default(now())
@@ -152,10 +165,10 @@ model Score {
 
 model AuditLog {
   id        String   @id @default(cuid())
-  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull, onUpdate: NoAction)
   actorId   String?
   action    String
   target    String?
-  meta      Json?
+  meta      String? // SQL Server has no JSON column type
   createdAt DateTime @default(now())
 }
