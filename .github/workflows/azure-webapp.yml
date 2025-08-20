@@ -7,6 +7,11 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      # Use your Azure SQL URL secret (must start with sqlserver://)
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -17,56 +22,45 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@10
 
-      - name: Corepack sanity
+      - name: Enable Corepack (sanity)
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      - name: Install (workspace root)
+      # Workspace install at repo root
+      - name: Install dependencies (workspace root)
         run: pnpm install --frozen-lockfile
 
-      # Build web (uses your SQL Server URL at build time; add this secret in repo settings)
+      # If you have pnpm-allow-scripts.json committed, this approves prisma scripts
+      - name: Approve build scripts (optional)
+        run: pnpm approve-builds || true
+
+      # ---- Prisma generate BEFORE build (uses sqlserver URL from env) ----
+      - name: Prisma generate (apps/web)
+        working-directory: apps/web
+        run: pnpm prisma generate
+
+      # ---- Build Next (uses Clerk + DATABASE_URL only for type/scheme; /events is runtime-rendered) ----
       - name: Build (apps/web)
         working-directory: apps/web
-        env:
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: pnpm build
 
-      # Assert standalone output exists (root OR monorepo path)
-      - name: Assert standalone server path
+      # Ensure standalone output exists
+      - name: Verify standalone output
         working-directory: apps/web
         run: |
-          set -e
-          if [ -f .next/standalone/server.js ]; then
-            echo "SERVER_PATH=server.js" >> $GITHUB_ENV
-            echo "Detected: .next/standalone/server.js"
-          elif [ -f .next/standalone/apps/web/server.js ]; then
-            echo "SERVER_PATH=apps/web/server.js" >> $GITHUB_ENV
-            echo "Detected: .next/standalone/apps/web/server.js"
-          else
-            echo "ERROR: standalone server.js not found in either expected location."
-            ls -R .next || true
-            exit 1
-          fi
+          test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure next.config.mjs has output: 'standalone'." && exit 1)
 
-      # Prepare deploy folder (standalone)
-      - name: Prepare deploy folder
+      # Package standalone bundle + static assets + public
+      - name: Prepare deploy folder (standalone)
         working-directory: apps/web
         run: |
-          set -e
           rm -rf ../site && mkdir -p ../site
-          # copy the traced standalone tree
           cp -r .next/standalone/* ../site/
-          # static assets
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
-          # public assets
           cp -r public ../site/public
-          # write a hint with the resolved server path (for troubleshooting)
-          echo "$SERVER_PATH" > ../site/SERVER_PATH.txt
-          echo "Resolved SERVER_PATH=$SERVER_PATH"
 
       - name: Zip artifact
         working-directory: apps
