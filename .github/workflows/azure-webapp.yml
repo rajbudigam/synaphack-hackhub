@@ -2,6 +2,7 @@ name: Deploy Web (Next.js) to Azure App Service
 on:
   push:
     branches: [ main ]
+
 permissions:
   id-token: write
   contents: read
@@ -12,7 +13,7 @@ jobs:
 
     env:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      # Must be the SQL Server URL: sqlserver://...;database=...;user=...;password=...;encrypt=true;trustServerCertificate=false
+      # Must be SQL Server: sqlserver://...;database=...;user=...;password=...;encrypt=true;trustServerCertificate=false
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     steps:
@@ -31,29 +32,22 @@ jobs:
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Install deps at the repo root (workspace-aware)
       - name: Install deps (root)
         run: pnpm install --frozen-lockfile
 
-      # Prisma needs DATABASE_URL present to generate client
       - name: Prisma generate (web)
         working-directory: apps/web
         run: pnpm prisma generate
 
-      # Build strictly inside apps/web (so Next reads apps/web/next.config.mjs)
       - name: Build (apps/web)
         working-directory: apps/web
         run: |
           rm -rf .next
           pnpm build
-          echo "=== .next (top) ==="
-          ls -la .next | sed -n '1,200p' || true
-          echo "=== .next/standalone (top) ==="
-          ls -la .next/standalone | sed -n '1,200p' || true
-          echo "=== find server.js under .next/standalone ==="
-          find .next/standalone -maxdepth 3 -name server.js -print || true
+          echo "=== .next (top) ==="; ls -la .next || true
+          echo "=== .next/standalone (top) ==="; ls -la .next/standalone || true
+          echo "=== search for server.js ==="; find .next/standalone -maxdepth 3 -name server.js -print || true
 
-      # Resolve where Next put server.js (monorepos may nest it under apps/web/)
       - name: Resolve standalone root
         id: resolve
         working-directory: apps/web
@@ -74,28 +68,25 @@ jobs:
           echo "root=$DIR" >> $GITHUB_OUTPUT
           echo "Resolved standalone root: $DIR"
 
-      # Prepare the deploy folder so server.js is at the root of the zip
       - name: Prepare deploy (standalone bundle)
         working-directory: apps/web
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
-          # copy the resolved standalone root into site/
+          # Copy the RESOLVED folder CONTENTS so server.js is at deploy root
           cp -r "${{ steps.resolve.outputs.root }}"/. ../site/
-          # static assets + public
+          # Static assets + public
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
           cp -r public ../site/public || true
-          # confirm server.js exists at deploy root
-          ls -la ../site | sed -n '1,200p'
+          echo "=== deploy folder (apps/site) ==="
+          ls -la ../site
           test -f ../site/server.js
 
       - name: Zip artifact
         working-directory: apps/site
         run: zip -r ../app.zip .
 
-      # Login using SP (publish profile disabled)
-            # Login using OIDC (no client secret needed)
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
