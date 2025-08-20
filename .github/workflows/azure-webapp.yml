@@ -39,8 +39,14 @@ jobs:
         env:
           DATABASE_URL: file:./prisma/dev.db
         run: |
+          set -e
+          echo "cwd=$(pwd)"
+          mkdir -p prisma
           pnpm prisma db push
           pnpm prisma db seed
+          echo "Contents of prisma/:"
+          ls -la prisma
+          echo "Size of dev.db:"
           ls -lh prisma/dev.db
 
       # Build Next.js (needs Clerk + DATABASE_URL in env)
