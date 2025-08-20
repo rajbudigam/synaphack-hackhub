@@ -1,16 +1,11 @@
 import { prisma } from "@/server/db";
-import type { Event, Track, Round, Team } from "@prisma/client";
 
-export type EventListItem = Event & {
-  tracks: Track[];
-  rounds: Round[];
-};
+// Inferred types from the actual Prisma calls — no direct model type imports needed
+export type EventListItem =
+  Awaited<ReturnType<typeof prisma.event.findMany>>[number];
 
-export type EventFull = Event & {
-  tracks: Track[];
-  rounds: Round[];
-  teams: Team[];
-};
+export type EventFull =
+  NonNullable<Awaited<ReturnType<typeof prisma.event.findUnique>>>;
 
 export async function listEvents(): Promise<EventListItem[]> {
   return prisma.event.findMany({
@@ -19,7 +14,9 @@ export async function listEvents(): Promise<EventListItem[]> {
   });
 }
 
-export async function getEventBySlug(slug: string): Promise<EventFull | null> {
+export async function getEventBySlug(
+  slug: string
+): Promise<EventFull | null> {
   return prisma.event.findUnique({
     where: { slug },
     include: { tracks: true, rounds: true, teams: true },
