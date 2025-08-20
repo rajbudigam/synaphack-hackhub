@@ -1,14 +1,16 @@
 import { prisma } from "@/server/db";
-import type { Prisma } from "@prisma/client";
+import type { Event, Track, Round, Team } from "@prisma/client";
 
-// Types for the shapes you're returning
-export type EventListItem = Prisma.EventGetPayload<{
-  include: { tracks: true; rounds: true }
-}>;
+export type EventListItem = Event & {
+  tracks: Track[];
+  rounds: Round[];
+};
 
-export type EventFull = Prisma.EventGetPayload<{
-  include: { tracks: true; rounds: true; teams: true }
-}>;
+export type EventFull = Event & {
+  tracks: Track[];
+  rounds: Round[];
+  teams: Team[];
+};
 
 export async function listEvents(): Promise<EventListItem[]> {
   return prisma.event.findMany({
