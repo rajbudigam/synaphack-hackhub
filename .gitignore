@@ -1,1 +1,5 @@
 node_modules
+
+# Local Azure creds
+azure-sp.json
+apps/web/azure-sp.json
