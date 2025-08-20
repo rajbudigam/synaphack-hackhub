@@ -8,9 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # Use your Azure SQL URL secret (must start with sqlserver://)
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # App expects these at build time (adjust to your setup)
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }} # <-- SQL Server URL (sqlserver://...;user=...;password=...;database=...)
 
     steps:
       - uses: actions/checkout@v4
@@ -20,57 +20,69 @@ jobs:
           node-version: 20
 
       - name: Install pnpm
-        run: npm install -g pnpm@10
+        run: npm i -g pnpm@10
 
-      - name: Enable Corepack (sanity)
+      - name: Corepack sanity (optional)
         run: |
           corepack enable
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      # Workspace install at repo root
-      - name: Install dependencies (workspace root)
+      # Install at repo root (monorepo-aware)
+      - name: Install deps (root)
         run: pnpm install --frozen-lockfile
 
-      # If you have pnpm-allow-scripts.json committed, this approves prisma scripts
-      - name: Approve build scripts (optional)
-        run: pnpm approve-builds || true
-
-      # ---- Prisma generate BEFORE build (uses sqlserver URL from env) ----
-      - name: Prisma generate (apps/web)
+      # Generate Prisma client (uses DATABASE_URL from env above)
+      - name: Prisma generate (web)
         working-directory: apps/web
         run: pnpm prisma generate
 
-      # ---- Build Next (uses Clerk + DATABASE_URL only for type/scheme; /events is runtime-rendered) ----
-      - name: Build (apps/web)
-        working-directory: apps/web
-        run: pnpm build
-
-      # Ensure standalone output exists
-      - name: Verify standalone output
+      # Build Next.js **inside apps/web**
+      - name: Build (web)
         working-directory: apps/web
         run: |
-          test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure next.config.mjs has output: 'standalone'." && exit 1)
+          rm -rf .next
+          pnpm build
+          # Debug: show what Next actually produced
+          echo "=== .next tree (top) ==="
+          ls -la .next | sed -n '1,200p'
+          echo "=== .next/standalone tree (top) ==="
+          ls -la .next/standalone | sed -n '1,200p' || true
 
-      # Package standalone bundle + static assets + public
-      - name: Prepare deploy folder (standalone)
+      # Verify standalone output AFTER build
+      - name: Verify standalone server.js
+        working-directory: apps/web
+        run: |
+          test -f .next/standalone/server.js || (echo "ERROR: .next/standalone/server.js not found. Ensure apps/web/next.config.mjs has output:'standalone' and that the build ran in apps/web." && exit 1)
+
+      # Prepare minimal deploy folder
+      - name: Prepare deploy (standalone bundle)
         working-directory: apps/web
         run: |
           rm -rf ../site && mkdir -p ../site
+          # copy the standalone server + node_modules bundle
           cp -r .next/standalone/* ../site/
+          # copy static assets and public
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static
           cp -r public ../site/public
+          # Startup file is ../site/server.js
+          ls -la ../site | sed -n '1,200p'
 
       - name: Zip artifact
         working-directory: apps
-        run: |
-          cd site
-          zip -r ../app.zip .
+        run: zip -r app.zip site
+
+      # Login with service principal (since publish profile basic auth is disabled)
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: apps/app.zip
