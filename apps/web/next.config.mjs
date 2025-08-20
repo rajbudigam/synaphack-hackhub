@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: 'standalone', // Important for containerized deployments
+  experimental: {
+    serverActions: true,
+  },
 };
 export default nextConfig;
