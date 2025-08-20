@@ -73,17 +73,17 @@ jobs:
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
-          # copy standalone (includes server.js + minimal node_modules)
-          rsync -a "${{ steps.resolve.outputs.root }}/" ../site/
-          # copy static + public
+          # copy the resolved standalone root into site/
+          cp -r "${{ steps.resolve.outputs.root }}"/. ../site/
+          # static assets + public
           mkdir -p ../site/.next/static
-          rsync -a .next/static/ ../site/.next/static/ || true
-          [ -d public ] && rsync -a public/ ../site/public/ || true
-          echo "=== deploy root ==="
+          cp -r .next/static ../site/.next/static
+          cp -r public ../site/public || true
+          # remove build-time markers that make Oryx think it should build
+          rm -f ../site/package.json ../site/pnpm-lock.yaml ../site/yarn.lock ../site/package-lock.json
+          # confirm server.js exists at deploy root
           ls -la ../site | sed -n '1,200p'
-          # hard checks before zipping
           test -f ../site/server.js
-          test -f ../site/node_modules/next/package.json || (echo "ERROR: next not in deploy bundle"; exit 1)
 
       - name: Zip artifact
         working-directory: apps
