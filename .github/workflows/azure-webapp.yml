@@ -91,8 +91,8 @@ jobs:
           test -f ../site/server.js
 
       - name: Zip artifact
-        working-directory: apps
-        run: zip -r app.zip site
+        working-directory: apps/site
+        run: zip -r ../app.zip .
 
       # Login using SP (publish profile disabled)
             # Login using OIDC (no client secret needed)
