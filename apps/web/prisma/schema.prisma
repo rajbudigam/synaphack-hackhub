@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" // dev-friendly. Swap to "sqlserver" for Azure later.
+  provider = "sqlserver" 
   url      = env("DATABASE_URL")
 }
 
