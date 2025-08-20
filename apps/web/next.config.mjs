@@ -1,17 +1,7 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  experimental: {
-    serverActions: {
-      allowedOrigins: ["*"],
-      bodySizeLimit: "2mb"
-    }
-  },
-  images: {
-    domains: ['avatars.githubusercontent.com'],
-  },
-  eslint: {
-    ignoreDuringBuilds: true, // Temporarily ignore ESLint errors during build
-  }
-}
-
-export default nextConfig
+  // Remove/avoid invalid experimental.serverActions boolean;
+  // If you need server actions, you can configure them properly later.
+};
+export default nextConfig;
