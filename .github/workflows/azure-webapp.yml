@@ -56,7 +56,20 @@ jobs:
           rm -rf .next
           pnpm build
           echo "Search for server.js under .next/standalone (may be nested)..."
-          find .next/standalone -maxdepth 5 -type f -name server.js -print
+          find .next/standalone -maxdepth 6 -type f -name server.js -print
+
+      # If tracing didn't emit node_modules, synthesize a production node_modules inside .next/standalone
+      - name: Ensure standalone has production node_modules (fallback)
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          ROOT=".next/standalone"
+          if [ ! -d "$ROOT/node_modules" ]; then
+            echo "Traced node_modules missing. Populating standalone with pnpm deploy..."
+            # Create a normal, pruned node_modules inside the standalone folder
+            pnpm -w deploy --filter ./apps/web --prod "$ROOT"
+          fi
+          test -d "$ROOT/node_modules" || (echo "ERROR: still no node_modules in $ROOT"; exit 1)
 
       - name: Resolve standalone root (folder that contains server.js)
         id: resolve
@@ -73,8 +86,8 @@ jobs:
           DIR="$(dirname "$FOUND")"
           echo "root=$DIR" >> "$GITHUB_OUTPUT"
           echo "Resolved server dir: $DIR"
-          
-          # Determine the base that holds traced node_modules:
+
+          # Determine the base that holds node_modules:
           # - If server.js is at .next/standalone/server.js => BASE=$DIR
           # - If server.js is at .next/standalone/apps/web/server.js => BASE=.next/standalone
           if [ -d "$DIR/node_modules" ]; then
@@ -82,13 +95,6 @@ jobs:
           else
             BASE="$(echo "$DIR" | sed 's#/apps/web$##')"
           fi
-
-          if [ ! -d "$BASE/node_modules" ]; then
-            echo "ERROR: traced node_modules not found at $BASE/node_modules"
-            ls -la "$BASE" || true
-            exit 1
-          fi
-
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
           echo "Resolved node_modules base: $BASE"
 
@@ -98,7 +104,7 @@ jobs:
           set -euo pipefail
           rm -rf ../site && mkdir -p ../site
 
-          # Copy the server dir (this puts server.js at site/server.js)
+          # Copy the server dir (puts server.js at site/server.js)
           cp -R "${{ steps.resolve.outputs.root }}/." ../site/
 
           # Copy static/public for Next
@@ -106,7 +112,12 @@ jobs:
           cp -R .next/static ../site/.next/static || true
           cp -R public ../site/public || true
 
-          # Package the traced node_modules from the BASE computed above
+          # Package node_modules from the resolved base
+          if [ ! -d "${{ steps.resolve.outputs.base }}/node_modules" ]; then
+            echo "ERROR: expected node_modules at ${{ steps.resolve.outputs.base }}/node_modules"
+            ls -la "${{ steps.resolve.outputs.base }}" || true
+            exit 1
+          fi
           tar -C "${{ steps.resolve.outputs.base }}/node_modules" -czf ../site/node_modules.tar.gz .
 
           # Ensure Kudu uses our tar
@@ -160,7 +171,6 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: apps/app.zip
 
-      # Optional but helpful: restart + smoke test
       - name: Restart & Smoke Test
         run: |
           set -euo pipefail
