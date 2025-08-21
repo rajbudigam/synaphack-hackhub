@@ -1,4 +1,5 @@
 name: Deploy Web (Next.js) to Azure App Service
+
 on:
   push:
     branches: [ main ]
@@ -12,109 +13,156 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # runtime env (provided as GitHub Secrets)
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # azure app identity / target
+      AZURE_CLIENT_ID:        ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID:        ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID:  ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_WEBAPP_NAME:      ${{ secrets.AZURE_WEBAPP_NAME }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node (LTS 20)
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
-      - name: Install pnpm
-        run: npm i -g pnpm@10
+      - name: Install pnpm (pinned)
+        run: npm i -g pnpm@10.13.1
 
-      - name: Corepack sanity
+      - name: Tooling sanity
         run: |
-          corepack enable
-          corepack prepare pnpm@10 --activate
+          set -euo pipefail
+          node -v
           pnpm -v
 
+      # Install all workspaces (monorepo). We allow lock drift to avoid CI failures.
       - name: Install deps (root)
         run: pnpm install --no-frozen-lockfile
 
-      - name: Prisma generate (web)
+      # Prisma generate uses DATABASE_URL from env
+      - name: Prisma generate (apps/web)
         working-directory: apps/web
         run: pnpm exec prisma generate
 
-      - name: Build (apps/web)
+      - name: Build Next.js (apps/web)
         working-directory: apps/web
         run: |
-          set -e
+          set -euo pipefail
           rm -rf .next
           pnpm build
-          echo "=== find server.js under .next/standalone (may be nested) ==="
-          find .next/standalone -maxdepth 5 -name server.js -print
+          echo "Search for server.js under .next/standalone (may be nested)..."
+          find .next/standalone -maxdepth 5 -type f -name server.js -print
 
-      - name: Resolve standalone root
+      - name: Resolve standalone root (folder that contains server.js)
         id: resolve
         working-directory: apps/web
         run: |
-          set -e
+          set -euo pipefail
           ROOT=".next/standalone"
-          FOUND=$(find "$ROOT" -maxdepth 5 -type f -name server.js | head -n1 || true)
-          [ -n "$FOUND" ] || (echo "ERROR: server.js not found under $ROOT"; find "$ROOT" -maxdepth 5 -print; exit 1)
-          DIR=$(dirname "$FOUND")
-          echo "root=$DIR" >> $GITHUB_OUTPUT
+          FOUND="$(find "$ROOT" -maxdepth 5 -type f -name server.js | head -n1 || true)"
+          if [ -z "$FOUND" ]; then
+            echo "ERROR: server.js not found under $ROOT"
+            find "$ROOT" -maxdepth 5 -print || true
+            exit 1
+          fi
+          DIR="$(dirname "$FOUND")"
+          echo "root=$DIR" >> "$GITHUB_OUTPUT"
           echo "Resolved standalone root: $DIR"
 
-      - name: Prepare deploy (standalone bundle)
+      - name: Prepare deploy bundle (apps/site)
         working-directory: apps/web
         run: |
-          set -e
+          set -euo pipefail
           rm -rf ../site && mkdir -p ../site
 
-          # Copy the standalone output (includes server.js and its traced node_modules)
+          # Copy the standalone output next to server.js (includes traced node_modules/)
           cp -R "${{ steps.resolve.outputs.root }}/." ../site/
 
-          # Copy static/public
+          # Copy static assets and public
           mkdir -p ../site/.next/static
           cp -R .next/static ../site/.next/static || true
           cp -R public ../site/public || true
 
-          # Build a clean node_modules.tar.gz from the traced standalone node_modules
+          # Build node_modules.tar.gz *from the traced* node_modules next to server.js
+          if [ ! -d "${{ steps.resolve.outputs.root }}/node_modules" ]; then
+            echo "ERROR: traced node_modules missing at ${{ steps.resolve.outputs.root }}/node_modules"
+            ls -la "${{ steps.resolve.outputs.root }}" || true
+            exit 1
+          fi
           tar -C "${{ steps.resolve.outputs.root }}/node_modules" -czf ../site/node_modules.tar.gz .
 
-          # IMPORTANT: remove the node_modules directory so Kudu MUST use our tarball (prevents re-tar surprises)
+          # Force Kudu to use our tarball (avoid surprises)
           rm -rf ../site/node_modules
 
-          # Sanity check the tar has key runtime deps
-          tar -tf ../site/node_modules.tar.gz | grep '^@next/env/' | head -n1
-          tar -tf ../site/node_modules.tar.gz | grep '^@swc/helpers/' | head -n1
-          tar -tf ../site/node_modules.tar.gz | grep '^next/' | head -n1
-
-          echo "== site listing =="
+          echo "== site root listing =="
           ls -la ../site | sed -n '1,200p'
+          echo "== server.js head =="
+          head -n 5 ../site/server.js || true
+
+      - name: Validate node_modules.tar.gz
+        working-directory: apps
+        run: |
+          set -euo pipefail
+          test -f site/node_modules.tar.gz
+          echo "Tar size:"
+          du -h site/node_modules.tar.gz
+
+          # Require critical runtime deps to exist in the tar
+          tar -tf site/node_modules.tar.gz | grep -q '^@next/env/'        || (echo "MISSING: @next/env in tar" && exit 1)
+          tar -tf site/node_modules.tar.gz | grep -q '^@swc/helpers/'     || (echo "MISSING: @swc/helpers in tar" && exit 1)
+          tar -tf site/node_modules.tar.gz | grep -q '^next/'             || (echo "MISSING: next in tar" && exit 1)
+          tar -tf site/node_modules.tar.gz | head -n 20
 
       - name: Zip artifact
         working-directory: apps
         run: |
-          set -e
+          set -euo pipefail
           cd site
           zip -r ../app.zip .
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id:        ${{ env.AZURE_CLIENT_ID }}
+          tenant-id:        ${{ env.AZURE_TENANT_ID }}
+          subscription-id:  ${{ env.AZURE_SUBSCRIPTION_ID }}
           audience: api://AzureADTokenExchange
 
-      - name: Ensure Azure App Service settings
+      # Ensure required App Service settings for Node on Linux
+      - name: Configure App Service settings (idempotent)
         run: |
-          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
-          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings \
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
-            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-            NODE_ENV=production
-          echo "Settings applied."
-      
+          set -euo pipefail
+          az webapp config appsettings set -g hackhub-rgv -n "$AZURE_WEBAPP_NAME" \
+            --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false NODE_ENV=production \
+                       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY='${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}' \
+                       DATABASE_URL='${{ secrets.DATABASE_URL }}'
+          echo "Applied app settings."
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: apps/app.zip
+
+      # Optional but helpful: restart + smoke test
+      - name: Restart & Smoke Test
+        run: |
+          set -euo pipefail
+          az webapp restart -g hackhub-rgv -n "$AZURE_WEBAPP_NAME"
+          echo "Warming up..."
+          for i in $(seq 1 20); do
+            sleep 5
+            if curl -fsS "https://${AZURE_WEBAPP_NAME}.azurewebsites.net/" -I | grep -qE 'HTTP/1.1 200|HTTP/2 200|HTTP/1.1 307|HTTP/2 307'; then
+              echo "App responded ✅"
+              exit 0
+            fi
+            echo "retry $i..."
+          done
+          echo "Smoke test failed"
+          exit 1
