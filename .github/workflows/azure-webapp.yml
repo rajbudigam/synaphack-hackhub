@@ -56,46 +56,38 @@ jobs:
           set -e
           ROOT=".next/standalone"
           FOUND=$(find "$ROOT" -maxdepth 5 -type f -name server.js | head -n1 || true)
-          if [ -z "$FOUND" ]; then
-            echo "ERROR: server.js not found under $ROOT"
-            find "$ROOT" -maxdepth 5 -print || true
-            exit 1
-          fi
+          [ -n "$FOUND" ] || (echo "ERROR: server.js not found under $ROOT"; find "$ROOT" -maxdepth 5 -print; exit 1)
           DIR=$(dirname "$FOUND")
           echo "root=$DIR" >> $GITHUB_OUTPUT
           echo "Resolved standalone root: $DIR"
 
-      - name: Prepare deploy (copy standalone bundle)
+      - name: Prepare deploy (standalone bundle)
         working-directory: apps/web
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
 
-          # Copy ONLY the resolved standalone root (this contains server.js and the correct node_modules)
+          # Copy the standalone output (includes server.js and its traced node_modules)
           cp -R "${{ steps.resolve.outputs.root }}/." ../site/
 
-          # Static assets and public
+          # Copy static/public
           mkdir -p ../site/.next/static
           cp -R .next/static ../site/.next/static || true
           cp -R public ../site/public || true
 
-          # Create node_modules.tar.gz from the node_modules that are NEXT TO server.js
+          # Build a clean node_modules.tar.gz from the traced standalone node_modules
           tar -C "${{ steps.resolve.outputs.root }}/node_modules" -czf ../site/node_modules.tar.gz .
 
-          # Do NOT ship a node_modules directory; we only want node_modules.tar.gz
-          rm -rf ../site/node_modules || true
+          # IMPORTANT: remove the node_modules directory so Kudu MUST use our tarball (prevents re-tar surprises)
+          rm -rf ../site/node_modules
 
-          echo "== sanity: server.js and node_modules.tar.gz =="
-          ls -l ../site/server.js ../site/node_modules.tar.gz
+          # Sanity check the tar has key runtime deps
+          tar -tf ../site/node_modules.tar.gz | grep '^@next/env/' | head -n1
+          tar -tf ../site/node_modules.tar.gz | grep '^@swc/helpers/' | head -n1
+          tar -tf ../site/node_modules.tar.gz | grep '^next/' | head -n1
 
-      - name: Verify runtime deps in tar (must have @next/env and @swc/helpers)
-        working-directory: apps
-        run: |
-          set -e
-          tar -tf site/node_modules.tar.gz | grep '^@next/env/' | head -n1
-          tar -tf site/node_modules.tar.gz | grep '^@swc/helpers/' | head -n1
-          tar -tf site/node_modules.tar.gz | grep '^next/' | head -n1
-          echo "OK: required runtime deps found in node_modules.tar.gz"
+          echo "== site listing =="
+          ls -la ../site | sed -n '1,200p'
 
       - name: Zip artifact
         working-directory: apps
@@ -114,14 +106,13 @@ jobs:
 
       - name: Ensure Azure App Service settings
         run: |
-          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 \
-            --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
-          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 \
-            --settings NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
-                      DATABASE_URL="${{ secrets.DATABASE_URL }}" \
-                      NODE_ENV=production
+          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings \
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            NODE_ENV=production
           echo "Settings applied."
-
+      
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
