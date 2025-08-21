@@ -92,7 +92,7 @@ jobs:
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
           echo "Resolved node_modules base: $BASE"
 
-            - name: Prepare deploy bundle (apps/site)
+      - name: Prepare deploy bundle (apps/site)
         working-directory: apps/web
         run: |
           set -euo pipefail
