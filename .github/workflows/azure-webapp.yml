@@ -33,7 +33,7 @@ jobs:
           corepack prepare pnpm@10 --activate
           pnpm -v
 
-      - name: Install deps (root) - allow lockfile drift
+      - name: Install deps (root)
         run: pnpm install --no-frozen-lockfile
 
       - name: Prisma generate (web)
@@ -46,8 +46,8 @@ jobs:
           set -e
           rm -rf .next
           pnpm build
-          echo "=== .next/standalone (top) ==="; ls -la .next/standalone || true
-          echo "=== find server.js under .next/standalone ==="; find .next/standalone -maxdepth 4 -name server.js -print || true
+          echo "=== find server.js under .next/standalone ==="
+          find .next/standalone -maxdepth 5 -name server.js -print || true
 
       - name: Resolve standalone root
         id: resolve
@@ -59,30 +59,51 @@ jobs:
             echo "root=$ROOT" >> $GITHUB_OUTPUT
             exit 0
           fi
-          FOUND=$(find "$ROOT" -maxdepth 4 -type f -name server.js | head -n1 || true)
+          FOUND=$(find "$ROOT" -maxdepth 5 -type f -name server.js | head -n1 || true)
           if [ -z "$FOUND" ]; then
             echo "ERROR: server.js not found under $ROOT"
-            find "$ROOT" -maxdepth 4 -print || true
+            find "$ROOT" -maxdepth 5 -print || true
             exit 1
           fi
           DIR=$(dirname "$FOUND")
           echo "root=$DIR" >> $GITHUB_OUTPUT
           echo "Resolved standalone root: $DIR"
 
-      - name: Prepare deploy (standalone bundle)
+      - name: Prepare deploy (copy standalone + pack its node_modules)
         working-directory: apps/web
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
+
+          # copy the standalone bundle into site/
           cp -r "${{ steps.resolve.outputs.root }}"/. ../site/
+
+          # copy static assets and public
           mkdir -p ../site/.next/static
           cp -r .next/static ../site/.next/static || true
           cp -r public ../site/public || true
-          # *** FIX: pack standalone node_modules ***
-          tar -C "${{ steps.resolve.outputs.root }}" -czf ../site/node_modules.tar.gz node_modules
+
+          # locate node_modules that sit NEXT TO server.js in the standalone output
+          NM=""
+          if [ -d "${{ steps.resolve.outputs.root }}/node_modules" ]; then
+            NM="${{ steps.resolve.outputs.root }}/node_modules"
+          elif [ -d ".next/standalone/apps/web/node_modules" ]; then
+            NM=".next/standalone/apps/web/node_modules"
+          fi
+
+          if [ -z "$NM" ]; then
+            echo "ERROR: could not locate standalone node_modules"
+            find .next/standalone -maxdepth 5 -type d -name node_modules
+            exit 1
+          fi
+
+          # build the tarball from the REAL files in the standalone node_modules
+          tar -C "$NM" -czf ../site/node_modules.tar.gz .
+
+          echo "== site root =="
           ls -la ../site | sed -n '1,200p'
-          test -f ../site/server.js
-          test -f ../site/node_modules.tar.gz
+          echo "== tar sanity =="
+          tar -tf ../site/node_modules.tar.gz | head -n 20
 
       - name: Zip artifact
         working-directory: apps
@@ -99,12 +120,18 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           audience: api://AzureADTokenExchange
 
-      - name: Ensure Azure App Service settings
+      # Push runtime settings so the app can boot
+      - name: Configure App Service app settings
         run: |
-          az webapp config appsettings set -g hackhub-rgv -n hackhub-app-870 --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+          az webapp config appsettings set \
+            -g hackhub-rgv -n hackhub-app-870 \
+            --settings WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+                       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY='${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}' \
+                       CLERK_SECRET_KEY='${{ secrets.CLERK_SECRET_KEY }}' \
+                       DATABASE_URL='${{ secrets.DATABASE_URL }}'
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          app-name: hackhub-app-870
           package: apps/app.zip
