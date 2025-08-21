@@ -64,45 +64,56 @@ jobs:
         run: |
           set -euo pipefail
           ROOT=".next/standalone"
-          FOUND="$(find "$ROOT" -maxdepth 5 -type f -name server.js | head -n1 || true)"
+          FOUND="$(find "$ROOT" -maxdepth 6 -type f -name server.js | head -n1 || true)"
           if [ -z "$FOUND" ]; then
             echo "ERROR: server.js not found under $ROOT"
-            find "$ROOT" -maxdepth 5 -print || true
+            find "$ROOT" -maxdepth 6 -print || true
             exit 1
           fi
           DIR="$(dirname "$FOUND")"
           echo "root=$DIR" >> "$GITHUB_OUTPUT"
-          echo "Resolved standalone root: $DIR"
+          echo "Resolved server dir: $DIR"
+          
+          # Determine the base that holds traced node_modules:
+          # - If server.js is at .next/standalone/server.js => BASE=$DIR
+          # - If server.js is at .next/standalone/apps/web/server.js => BASE=.next/standalone
+          if [ -d "$DIR/node_modules" ]; then
+            BASE="$DIR"
+          else
+            BASE="$(echo "$DIR" | sed 's#/apps/web$##')"
+          fi
 
-      - name: Prepare deploy bundle (apps/site)
+          if [ ! -d "$BASE/node_modules" ]; then
+            echo "ERROR: traced node_modules not found at $BASE/node_modules"
+            ls -la "$BASE" || true
+            exit 1
+          fi
+
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          echo "Resolved node_modules base: $BASE"
+
+            - name: Prepare deploy bundle (apps/site)
         working-directory: apps/web
         run: |
           set -euo pipefail
           rm -rf ../site && mkdir -p ../site
 
-          # Copy the standalone output next to server.js (includes traced node_modules/)
+          # Copy the server dir (this puts server.js at site/server.js)
           cp -R "${{ steps.resolve.outputs.root }}/." ../site/
 
-          # Copy static assets and public
+          # Copy static/public for Next
           mkdir -p ../site/.next/static
           cp -R .next/static ../site/.next/static || true
           cp -R public ../site/public || true
 
-          # Build node_modules.tar.gz *from the traced* node_modules next to server.js
-          if [ ! -d "${{ steps.resolve.outputs.root }}/node_modules" ]; then
-            echo "ERROR: traced node_modules missing at ${{ steps.resolve.outputs.root }}/node_modules"
-            ls -la "${{ steps.resolve.outputs.root }}" || true
-            exit 1
-          fi
-          tar -C "${{ steps.resolve.outputs.root }}/node_modules" -czf ../site/node_modules.tar.gz .
+          # Package the traced node_modules from the BASE computed above
+          tar -C "${{ steps.resolve.outputs.base }}/node_modules" -czf ../site/node_modules.tar.gz .
 
-          # Force Kudu to use our tarball (avoid surprises)
+          # Ensure Kudu uses our tar
           rm -rf ../site/node_modules
 
-          echo "== site root listing =="
+          echo "== site listing =="
           ls -la ../site | sed -n '1,200p'
-          echo "== server.js head =="
-          head -n 5 ../site/server.js || true
 
       - name: Validate node_modules.tar.gz
         working-directory: apps
