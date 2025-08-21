@@ -65,28 +65,27 @@ jobs:
           echo "root=$DIR" >> $GITHUB_OUTPUT
           echo "Resolved standalone root: $DIR"
 
-      - name: Prepare deploy (copy standalone bundle)
+      - name: Prepare deploy (standalone bundle)
         working-directory: apps/web
         run: |
           set -e
           rm -rf ../site && mkdir -p ../site
-
-          # Copy ONLY the resolved standalone root (this contains server.js and the correct node_modules)
+      
+          # Copy resolved standalone output next to server.js
           cp -R "${{ steps.resolve.outputs.root }}/." ../site/
-
-          # Static assets and public
+      
+          # Copy static/public
           mkdir -p ../site/.next/static
           cp -R .next/static ../site/.next/static || true
           cp -R public ../site/public || true
-
-          # Create node_modules.tar.gz from the node_modules that are NEXT TO server.js
+      
+          # Create node_modules.tar.gz from the node_modules NEXT TO server.js
           tar -C "${{ steps.resolve.outputs.root }}/node_modules" -czf ../site/node_modules.tar.gz .
-
-          # Do NOT ship a node_modules directory; we only want node_modules.tar.gz
-          rm -rf ../site/node_modules || true
-
-          echo "== sanity: server.js and node_modules.tar.gz =="
-          ls -l ../site/server.js ../site/node_modules.tar.gz
+      
+          # Verify critical runtime deps are present in the tar
+          tar -tf ../site/node_modules.tar.gz | grep '^@next/env/' | head -n1
+          tar -tf ../site/node_modules.tar.gz | grep '^@swc/helpers/' | head -n1
+          tar -tf ../site/node_modules.tar.gz | grep '^next/' | head -n1
 
       - name: Verify runtime deps in tar (must have @next/env and @swc/helpers)
         working-directory: apps
