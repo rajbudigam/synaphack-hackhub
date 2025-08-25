@@ -1,12 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
-// If you'd rather redirect unauthenticated users:
-// import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 export async function requireUser() {
   const { userId } = await auth(); // <- await!
   if (!userId) {
-    // redirect("/login"); // optional UX
-    throw new Error("Unauthorized");
+    redirect("/login"); // Redirect to login instead of throwing error
   }
   return userId;
 }
