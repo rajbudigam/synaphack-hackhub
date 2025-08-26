@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { CommandMenu } from "@/components/shell/command-menu";
+import { FlowBackground } from "@/components/FlowBackground";
 
 export const metadata = { 
   title: "SynapHack - Next-Gen Hackathon Platform", 
@@ -27,16 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* Main Content Area */}
                 <main className="flex min-h-screen flex-col overflow-hidden">
                   {/* Enhanced Topbar */}
-                  <div className="border-b border-gray-200/50 dark:border-gray-800/50 bg-card/50 backdrop-blur-xl shadow-sm">
-                    <Topbar />
-                  </div>
-                  
-                  {/* Content with gradient background */}
-                  <div className="flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/10">
-                    <div className="p-4 md:p-6 lg:p-8 animate-fade-in">
-                      {children}
-                    </div>
-                  </div>
+                  <Topbar />
+
+                  {/* Dynamic flowing background */}
+                  <FlowBackground>{children}</FlowBackground>
                 </main>
               </div>
               <CommandMenu />
