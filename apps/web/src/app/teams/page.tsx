@@ -1,44 +1,12 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/server/db";
-import { TeamWithMembers, TeamMember, User } from "@/types/database";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Trophy, Plus, UserPlus, Settings, Eye } from "lucide-react";
-
-// Type for the teams query result
-type TeamQueryResult = {
-  id: string;
-  name: string;
-  description: string | null;
-  avatar: string | null;
-  repositoryUrl: string | null;
-  videoUrl: string | null;
-  presentationUrl: string | null;
-  websiteUrl: string | null;
-  status: string;
-  createdAt: Date;
-  eventId: string;
-  members: {
-    id: string;
-    role: string;
-    joinedAt: Date;
-    userId: string;
-    teamId: string;
-    user: User;
-  }[];
-  event: {
-    name: string;
-    slug: string;
-  };
-  _count: {
-    members: number;
-    submissions: number;
-  };
-};
 
 export default async function TeamsPage() {
   const teams = await prisma.team.findMany({
@@ -87,7 +55,7 @@ export default async function TeamsPage() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">My Teams</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {myTeams.map((team: TeamQueryResult) => (
+            {myTeams.map((team: any) => (
               <TeamCard key={team.id} team={team} isOwned />
             ))}
           </div>
@@ -98,7 +66,7 @@ export default async function TeamsPage() {
       <section>
         <h2 className="text-2xl font-semibold mb-4">All Teams</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {allTeams.map((team: TeamQueryResult) => (
+          {allTeams.map((team: any) => (
             <TeamCard key={team.id} team={team} />
           ))}
         </div>
@@ -125,7 +93,7 @@ export default async function TeamsPage() {
   );
 }
 
-function TeamCard({ team, isOwned }: { team: TeamQueryResult; isOwned?: boolean }) {
+function TeamCard({ team, isOwned }: { team: any; isOwned?: boolean }) {
   return (
     <Card className="group hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-4">
@@ -135,7 +103,7 @@ function TeamCard({ team, isOwned }: { team: TeamQueryResult; isOwned?: boolean 
               {team.name}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Event
+              {team.event?.name || "Event"}
             </p>
           </div>
           <div className="flex flex-col gap-1">
@@ -159,7 +127,7 @@ function TeamCard({ team, isOwned }: { team: TeamQueryResult; isOwned?: boolean 
             </span>
           </div>
           <div className="flex -space-x-2">
-            {team.members.slice(0, 4).map((member: TeamMember & { user: User }) => (
+            {team.members?.slice(0, 4).map((member: any) => (
               <Avatar key={member.id} className="border-2 border-background h-8 w-8">
                 <AvatarImage src={member.user?.avatar || undefined} />
                 <AvatarFallback className="text-xs">
@@ -167,7 +135,7 @@ function TeamCard({ team, isOwned }: { team: TeamQueryResult; isOwned?: boolean 
                 </AvatarFallback>
               </Avatar>
             ))}
-            {team._count.members > 4 && (
+            {team._count?.members > 4 && (
               <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-muted text-xs">
                 +{team._count.members - 4}
               </div>
@@ -198,10 +166,10 @@ function TeamCard({ team, isOwned }: { team: TeamQueryResult; isOwned?: boolean 
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-1">
             <Trophy className="h-4 w-4 text-muted-foreground" />
-            <span>{team._count.submissions} submissions</span>
+            <span>{team._count?.submissions || 0} submissions</span>
           </div>
           <span className="text-muted-foreground">
-            {"Active"}
+            {team.status || "Active"}
           </span>
         </div>
 
