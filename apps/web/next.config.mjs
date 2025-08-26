@@ -6,7 +6,38 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  // Remove/avoid invalid experimental.serverActions boolean;
-  // If you need server actions, you can configure them properly later.
+  experimental: {
+    serverActions: {
+      // Disable origin validation in development (GitHub Codespaces)
+      allowedOrigins: process.env.NODE_ENV === 'development' 
+        ? ['*'] 
+        : [
+            'localhost:3000',
+            '*.app.github.dev',
+            'friendly-space-tribble-jjr7qqg6q6qg2qpx-3000.app.github.dev'
+          ]
+    }
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization'
+          }
+        ]
+      }
+    ]
+  }
 };
 export default nextConfig;

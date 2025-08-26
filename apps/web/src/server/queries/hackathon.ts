@@ -25,15 +25,17 @@ export async function createEvent(data: {
 }) {
   const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   
+  const { sponsors, ...eventData } = data;
+  
   return await prisma.event.create({
     data: {
-      ...data,
+      ...eventData,
       slug,
-      sponsors: data.sponsors ? JSON.stringify(data.sponsors) : null,
       mentorsList: data.mentorsList ? JSON.stringify(data.mentorsList) : null,
       tags: data.tags ? JSON.stringify(data.tags) : null,
       status: 'draft',
       featured: false,
+      // Don't include sponsors here - they should be created separately as Sponsor records
     },
   });
 }
