@@ -10,8 +10,10 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  email     String   @unique
+  clerkId   String   @unique
+  email     String?  @unique
   name      String?
+  imageUrl  String?
   avatar    String?
   bio       String?
   github    String?
@@ -19,8 +21,10 @@ model User {
   twitter   String?
   website   String?
   skills    String? // JSON array of skills
-  role      String   @default("participant") // participant, organizer, judge, mentor
+  role      String   @default("participant") // participant, organizer, judge, mentor, admin, sponsor_manager
+  isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   teams         TeamMember[]
   scores        Score[]
@@ -32,6 +36,10 @@ model User {
   announcements   Announcement[]
   certificates    Certificate[]
   poaps           POAP[]
+  
+  // Phase 2 additions
+  judgeAssignments JudgeAssignment[]
+  issuedCertificates IssuedCertificate[]
 }
 
 model Event {
@@ -50,7 +58,6 @@ model Event {
   prizeMoney       String?
   rules            String? // JSON formatted rules
   schedule         String? // JSON formatted schedule
-  sponsors         String? // JSON array of sponsors
   mentorsList      String? // JSON array of mentors
   tags             String? // JSON array of tags
   coverImage       String?
@@ -74,6 +81,12 @@ model Event {
   organizers      User[] @relation("EventOrganizer")
   judges          User[] @relation("EventJudge")
   mentors         User[] @relation("EventMentor")
+  
+  // Phase 2 additions
+  judgeAssignments JudgeAssignment[]
+  certificateTemplates CertificateTemplate[]
+  issuedCertificates IssuedCertificate[]
+  sponsors        Sponsor[]
 }
 
 model Track {
@@ -86,6 +99,7 @@ model Track {
   eventId     String
   
   submissions Submission[]
+  judgeAssignments JudgeAssignment[]
 }
 
 model Round {
@@ -345,4 +359,80 @@ model AuditLog {
 
   actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
   actorId String?
+}
+
+// =================== PHASE 2 MODELS ===================
+
+model JudgeAssignment {
+  id        String   @id @default(cuid())
+  eventId   String
+  judgeId   String
+  trackId   String? // Optional: assign to specific track
+  maxSubmissions Int? // Optional: limit number of submissions per judge
+  createdAt DateTime @default(now())
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  judge     User  @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  track     Track? @relation(fields: [trackId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, judgeId, trackId])
+}
+
+model Sponsor {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  website     String?
+  logoUrl     String?
+  description String?
+  tier        String   @default("bronze") // bronze, silver, gold, platinum
+  amount      Int?     // Sponsorship amount in cents
+  contact     String?  // Contact email
+  status      String   @default("pending") // pending, confirmed, featured
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model CertificateTemplate {
+  id          String   @id @default(cuid())
+  eventId     String
+  name        String
+  type        String   // participation, winner, runner_up, judge, mentor, organizer
+  title       String   // "Certificate of Excellence"
+  subtitle    String?  // "in recognition of outstanding achievement"
+  body        String   // Template with {{name}}, {{event}}, {{date}}, {{achievement}}
+  footer      String?  // Additional footer text
+  signature   String?  // Signatory name
+  layout      String   @default("modern") // modern, classic, minimal
+  primaryColor String  @default("#2563eb")
+  secondaryColor String @default("#64748b")
+  fontFamily  String   @default("Inter")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  issued      IssuedCertificate[]
+}
+
+model IssuedCertificate {
+  id          String   @id @default(cuid())
+  serial      String   @unique
+  eventId     String
+  templateId  String
+  userId      String
+  recipientName String // Cached name at time of issuance
+  achievement String?  // Specific achievement (1st Place, Top 10, etc.)
+  metadata    String?  // JSON for additional data
+  pdfUrl      String?  // Generated PDF URL
+  issuedAt    DateTime @default(now())
+  emailSent   Boolean  @default(false)
+  emailSentAt DateTime?
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  template    CertificateTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

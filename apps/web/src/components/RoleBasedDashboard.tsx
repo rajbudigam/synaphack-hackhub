@@ -1,465 +1,419 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+"use client";
+
+import { useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import OrganizerDashboard from "./OrganizerDashboard";
+import JudgeDashboard from "./JudgeDashboard";
+import SponsorManagerDashboard from "./SponsorManagerDashboard";
 import { 
   Users, 
   Trophy, 
-  Target, 
-  Calendar, 
-  FileText, 
-  BarChart3, 
-  Settings, 
-  Crown,
-  Award,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  Eye,
-  Download
-} from 'lucide-react';
-import { User, Event, TeamWithMembers, Submission } from '@/types/database';
+  Building2, 
+  Shield,
+  Calendar,
+  TrendingUp
+} from "lucide-react";
 
-interface DashboardProps {
-  currentUser: User;
-  events: Event[];
-  teams: TeamWithMembers[];
-  submissions: Submission[];
-  analytics?: any;
+interface UserProfile {
+  id: string;
+  name?: string;
+  email: string;
+  isAdmin: boolean;
+  roles: string[];
+  teams: Array<{
+    id: string;
+    name: string;
+    role: string;
+    event: {
+      name: string;
+      status: string;
+    };
+  }>;
+  judgeAssignments: Array<{
+    id: string;
+    status: string;
+    submission: {
+      title: string;
+      event: {
+        name: string;
+      };
+    };
+  }>;
+  sponsorships: Array<{
+    id: string;
+    tier: string;
+    event: {
+      name: string;
+    };
+  }>;
 }
 
-export default function RoleBasedDashboard({ currentUser, events, teams, submissions, analytics }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState('overview');
-  const userRole = currentUser.role; // participant, organizer, judge, mentor
+interface ParticipantStats {
+  totalTeams: number;
+  activeTeams: number;
+  submissions: number;
+  certificates: number;
+}
 
-  // Organize data based on user role
-  const userEvents = events.filter(event => {
-    switch (userRole) {
-      case 'organizer':
-        return true; // Organizers can see all events they have access to
-      case 'judge':
-        return true; // Judges can see events they're judging
-      case 'mentor':
-        return true; // Mentors can see events they're mentoring
-      default:
-        return true; // Participants see published events
+export default function RoleBasedDashboard() {
+  const { user, isLoaded } = useUser();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [participantStats, setParticipantStats] = useState<ParticipantStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      fetchUserProfile();
     }
-  });
+  }, [isLoaded, user]);
 
-  const userTeams = teams.filter(team => 
-    team.members?.some((member: any) => member.userId === currentUser.id)
-  );
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/users/profile');
+      if (!response.ok) throw new Error('Failed to fetch user profile');
+      
+      const data = await response.json();
+      setUserProfile(data.user);
+      
+      // Fetch participant stats if user is a regular participant
+      if (!data.user.isAdmin && data.user.roles.length === 0) {
+        const statsResponse = await fetch('/api/users/stats');
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setParticipantStats(statsData.stats);
+        }
+      }
+      
+      setError(null);
+    } catch (err) {
+      setError('Failed to load dashboard');
+      console.error('Dashboard fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const userSubmissions = submissions.filter(submission =>
-    userTeams.some(team => team.id === submission.teamId)
-  );
+  // Determine primary role for dashboard display
+  const getPrimaryRole = () => {
+    if (!userProfile) return 'participant';
+    if (userProfile.isAdmin) return 'admin';
+    if (userProfile.roles.includes('organizer')) return 'organizer';
+    if (userProfile.roles.includes('judge')) return 'judge';
+    if (userProfile.roles.includes('sponsor_manager')) return 'sponsor_manager';
+    return 'participant';
+  };
 
-  // Dashboard content for different roles
-  const renderParticipantDashboard = () => (
-    <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium">Events Joined</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{userTeams.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-medium">Teams</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{userTeams.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-purple-500" />
-              <span className="text-sm font-medium">Submissions</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{userSubmissions.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-yellow-500" />
-              <span className="text-sm font-medium">Wins</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">0</p>
-          </CardContent>
-        </Card>
-      </div>
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'admin': return 'Administrator';
+      case 'organizer': return 'Event Organizer';
+      case 'judge': return 'Judge';
+      case 'sponsor_manager': return 'Sponsor Manager';
+      default: return 'Participant';
+    }
+  };
 
-      {/* Active Events */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Active Events</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {userEvents.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">No active events. Join an event to get started!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {userEvents.map((event) => (
-                <div key={event.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">{event.name}</h3>
-                    <Badge variant={event.status === 'ongoing' ? 'default' : 'secondary'}>
-                      {event.status}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">{event.description}</p>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span>{new Date(event.startsAt).toLocaleDateString()}</span>
-                    <span>•</span>
-                    <span>{event.mode}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-500 text-white';
+      case 'organizer': return 'bg-blue-500 text-white';
+      case 'judge': return 'bg-green-500 text-white';
+      case 'sponsor_manager': return 'bg-purple-500 text-white';
+      default: return 'bg-gray-500 text-white';
+    }
+  };
 
-      {/* Team Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Teams</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {userTeams.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">You're not part of any team yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {userTeams.map((team) => (
-                <div key={team.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">{team.name}</h3>
-                    <Badge variant="outline">{team.status}</Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{team.description}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderOrganizerDashboard = () => (
-    <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium">Total Events</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{events.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-medium">Total Teams</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{teams.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-purple-500" />
-              <span className="text-sm font-medium">Submissions</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{submissions.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-yellow-500" />
-              <span className="text-sm font-medium">Completion Rate</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">
-              {Math.round((submissions.length / Math.max(teams.length, 1)) * 100)}%
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Event Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Event Management
-            <Button size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Manage Events
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {events.map((event) => (
-              <div key={event.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium">{event.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={event.status === 'published' ? 'default' : 'secondary'}>
-                      {event.status}
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Teams:</span>
-                    <span className="font-medium ml-1">
-                      {teams.filter(t => t.eventId === event.id).length}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Submissions:</span>
-                    <span className="font-medium ml-1">
-                      {submissions.filter(s => s.eventId === event.id).length}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Status:</span>
-                    <span className="font-medium ml-1">{event.status}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+  if (!isLoaded || loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Calendar className="w-8 h-8 mx-auto text-blue-500 mb-3" />
-            <h3 className="font-medium mb-2">Create Event</h3>
-            <p className="text-sm text-gray-600 mb-4">Start a new hackathon event</p>
-            <Button size="sm" className="w-full">Create</Button>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6 text-center">
-            <BarChart3 className="w-8 h-8 mx-auto text-green-500 mb-3" />
-            <h3 className="font-medium mb-2">View Analytics</h3>
-            <p className="text-sm text-gray-600 mb-4">Track event performance</p>
-            <Button size="sm" variant="outline" className="w-full">Analyze</Button>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6 text-center">
-            <Download className="w-8 h-8 mx-auto text-purple-500 mb-3" />
-            <h3 className="font-medium mb-2">Export Data</h3>
-            <p className="text-sm text-gray-600 mb-4">Download reports and data</p>
-            <Button size="sm" variant="outline" className="w-full">Export</Button>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-
-  const renderJudgeDashboard = () => (
-    <div className="space-y-6">
-      {/* Judging Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium">To Review</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{submissions.filter(s => s.status === 'submitted').length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-medium">Reviewed</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{submissions.filter(s => s.status === 'reviewed').length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <span className="text-sm font-medium">In Progress</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{submissions.filter(s => s.status === 'under_review').length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 text-purple-500" />
-              <span className="text-sm font-medium">Progress</span>
-            </div>
-            <div className="mt-2">
-              <Progress 
-                value={(submissions.filter(s => s.status === 'reviewed').length / Math.max(submissions.length, 1)) * 100} 
-                className="h-2"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Submissions to Review */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Submissions to Review</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {submissions.filter(s => s.status === 'submitted').map((submission) => (
-              <div key={submission.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium">{submission.title}</h3>
-                  <Badge variant="outline">Submitted</Badge>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">{submission.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    Team: {submission.teamId}
-                  </span>
-                  <Button size="sm">Review</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  const renderMentorDashboard = () => (
-    <div className="space-y-6">
-      {/* Mentoring Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-500" />
-              <span className="text-sm font-medium">Teams Mentoring</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{teams.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-green-500" />
-              <span className="text-sm font-medium">Events</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">{events.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-purple-500" />
-              <span className="text-sm font-medium">Success Rate</span>
-            </div>
-            <p className="text-2xl font-bold mt-2">85%</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Teams to Mentor */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Mentee Teams</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {teams.map((team) => (
-              <div key={team.id} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium">{team.name}</h3>
-                  <Badge variant="outline">{team.status}</Badge>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">{team.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    Last contact: 2 days ago
-                  </span>
-                  <Button size="sm" variant="outline">Message Team</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <Crown className="w-6 h-6 text-yellow-500" />
-          <h1 className="text-2xl font-bold">
-            {userRole === 'organizer' && 'Organizer Dashboard'}
-            {userRole === 'judge' && 'Judge Dashboard'}
-            {userRole === 'mentor' && 'Mentor Dashboard'}
-            {userRole === 'participant' && 'Participant Dashboard'}
-          </h1>
+          <Skeleton className="h-6 w-24" />
         </div>
-        <p className="text-gray-600">
-          Welcome back, {currentUser.name}! Here's your personalized overview.
-        </p>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-20 mt-1" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert className="max-w-md mx-auto mt-8">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  const primaryRole = getPrimaryRole();
+
+  // Render role-specific dashboard
+  if (primaryRole === 'admin' || primaryRole === 'organizer') {
+    return <OrganizerDashboard />;
+  }
+
+  if (primaryRole === 'judge') {
+    return <JudgeDashboard />;
+  }
+
+  if (primaryRole === 'sponsor_manager') {
+    return <SponsorManagerDashboard />;
+  }
+
+  // Default participant dashboard
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Welcome, {userProfile?.name || user?.firstName || 'Participant'}!
+          </h1>
+          <p className="text-muted-foreground">
+            Your hackathon journey and achievements
+          </p>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Badge className={getRoleBadgeColor(primaryRole)}>
+            {getRoleDisplayName(primaryRole)}
+          </Badge>
+          {userProfile?.roles.map((role) => (
+            <Badge key={role} variant="outline" className="text-xs">
+              {getRoleDisplayName(role)}
+            </Badge>
+          ))}
+        </div>
       </div>
 
-      {/* Role-specific content */}
-      {userRole === 'participant' && renderParticipantDashboard()}
-      {userRole === 'organizer' && renderOrganizerDashboard()}
-      {userRole === 'judge' && renderJudgeDashboard()}
-      {userRole === 'mentor' && renderMentorDashboard()}
+      {/* Participant Stats */}
+      {participantStats && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Teams Joined</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{participantStats.totalTeams}</div>
+              <p className="text-xs text-muted-foreground">
+                {participantStats.activeTeams} currently active
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Submissions</CardTitle>
+              <Trophy className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{participantStats.submissions}</div>
+              <p className="text-xs text-muted-foreground">
+                projects submitted
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Certificates</CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{participantStats.certificates}</div>
+              <p className="text-xs text-muted-foreground">
+                achievements earned
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Experience</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {participantStats.totalTeams > 0 ? 'Veteran' : 'Newcomer'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                hackathon status
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Active Teams */}
+      {userProfile?.teams && userProfile.teams.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>My Teams</CardTitle>
+            <CardDescription>
+              Teams you're currently part of
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {userProfile.teams.map((team) => (
+                <div key={team.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h3 className="font-medium">{team.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {team.event.name} • Role: {team.role}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant={team.event.status === 'ACTIVE' ? 'default' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {team.event.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Judge Assignments (if user is also a judge) */}
+      {userProfile?.judgeAssignments && userProfile.judgeAssignments.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Judge Assignments</CardTitle>
+            <CardDescription>
+              Submissions assigned for your evaluation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {userProfile.judgeAssignments.slice(0, 3).map((assignment) => (
+                <div key={assignment.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{assignment.submission.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {assignment.submission.event.name}
+                    </p>
+                  </div>
+                  <Badge 
+                    variant={assignment.status === 'COMPLETED' ? 'default' : 'outline'}
+                    className="text-xs"
+                  >
+                    {assignment.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Sponsorships (if user manages sponsors) */}
+      {userProfile?.sponsorships && userProfile.sponsorships.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Managed Sponsorships</CardTitle>
+            <CardDescription>
+              Sponsor partnerships you manage
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {userProfile.sponsorships.map((sponsorship) => (
+                <div key={sponsorship.id} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">{sponsorship.event.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Sponsor tier management
+                    </p>
+                  </div>
+                  <Badge className="text-xs">
+                    {sponsorship.tier}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Getting Started (for new users) */}
+      {(!userProfile?.teams || userProfile.teams.length === 0) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Getting Started</CardTitle>
+            <CardDescription>
+              New to hackathons? Here's how to get involved
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <Calendar className="h-5 w-5 text-blue-500 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Browse Events</p>
+                  <p className="text-xs text-muted-foreground">
+                    Check out upcoming hackathons and find one that interests you
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Users className="h-5 w-5 text-green-500 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Join a Team</p>
+                  <p className="text-xs text-muted-foreground">
+                    Connect with other participants or create your own team
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Trophy className="h-5 w-5 text-yellow-500 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Build & Submit</p>
+                  <p className="text-xs text-muted-foreground">
+                    Work on your project and submit it before the deadline
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <Shield className="h-5 w-5 text-purple-500 mt-0.5" />
+                <div>
+                  <p className="font-medium text-sm">Earn Recognition</p>
+                  <p className="text-xs text-muted-foreground">
+                    Get feedback from judges and earn certificates for your achievements
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
