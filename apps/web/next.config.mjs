@@ -8,15 +8,15 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      // Disable origin validation in development (GitHub Codespaces)
+      // Allow GitHub Codespaces and development environments
       allowedOrigins: process.env.NODE_ENV === 'development' 
-        ? ['*'] 
-        : [
-            'localhost:3000',
-            '*.app.github.dev',
-            'friendly-space-tribble-jjr7qqg6q6qg2qpx-3000.app.github.dev'
-          ]
+        ? ['localhost:3000', '*.app.github.dev', 'friendly-space-tribble-jjr7qqg6q6qg2qpx-3000.app.github.dev'] 
+        : ['localhost:3000']
     }
+  },
+  // Handle GitHub Codespaces forwarded headers
+  async rewrites() {
+    return []
   },
   async headers() {
     return [
@@ -25,7 +25,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Access-Control-Allow-Origin',
-            value: '*'
+            value: process.env.NODE_ENV === 'development' ? '*' : 'same-origin'
           },
           {
             key: 'Access-Control-Allow-Methods',
@@ -33,7 +33,7 @@ const nextConfig = {
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization'
+            value: 'Content-Type, Authorization, X-Forwarded-Host'
           }
         ]
       }
