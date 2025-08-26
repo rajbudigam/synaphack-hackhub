@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { prisma } from "@/server/db";
+import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -134,12 +134,12 @@ export default async function CertificatesPage() {
                   <div className="space-y-2">
                     <CardTitle className="text-xl">{certificate.title}</CardTitle>
                     <div className="flex items-center gap-2">
-                      <Badge variant={certificate.issued ? "default" : "secondary"}>
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-transparent bg-blue-500 text-white">
                         {certificate.issued ? "Issued" : "Pending"}
-                      </Badge>
-                      <Badge variant="outline">{certificate.type}</Badge>
+                      </span>
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">{certificate.type}</span>
                       {certificate.event && (
-                        <Badge variant="outline">{certificate.event.name}</Badge>
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">{certificate.event.name}</span>
                       )}
                     </div>
                   </div>

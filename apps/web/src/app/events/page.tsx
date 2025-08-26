@@ -1,4 +1,4 @@
-import { listEvents, EventListItem } from "@/server/queries/events";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,11 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Users, Trophy, Plus, Clock } from "lucide-react";
 
 export default async function EventsPage() {
-  const events = await listEvents();
+  const events = await prisma.event.findMany({
+    include: {
+      tracks: true,
+      _count: {
+        select: {
+          teams: true,
+          registrations: true
+        }
+      }
+    },
+    orderBy: { startsAt: "desc" }
+  });
 
-  const upcomingEvents = events.filter((e: EventListItem) => new Date(e.startsAt) > new Date());
-  const pastEvents = events.filter((e: EventListItem) => new Date(e.endsAt) < new Date());
-  const ongoingEvents = events.filter((e: EventListItem) => 
+  const upcomingEvents = events.filter((e: any) => new Date(e.startsAt) > new Date());
+  const pastEvents = events.filter((e: any) => new Date(e.endsAt) < new Date());
+  const ongoingEvents = events.filter((e: any) => 
     new Date(e.startsAt) <= new Date() && new Date(e.endsAt) >= new Date()
   );
 
@@ -37,7 +48,7 @@ export default async function EventsPage() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">🔥 Live Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ongoingEvents.map((event: EventListItem) => (
+            {ongoingEvents.map((event: any) => (
               <EventCard key={event.id} event={event} status="live" />
             ))}
           </div>
@@ -49,7 +60,7 @@ export default async function EventsPage() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">📅 Upcoming Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {upcomingEvents.map((event: EventListItem) => (
+            {upcomingEvents.map((event: any) => (
               <EventCard key={event.id} event={event} status="upcoming" />
             ))}
           </div>
@@ -61,7 +72,7 @@ export default async function EventsPage() {
         <section>
           <h2 className="text-2xl font-semibold mb-4">🏆 Past Events</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pastEvents.map((event: EventListItem) => (
+            {pastEvents.map((event: any) => (
               <EventCard key={event.id} event={event} status="past" />
             ))}
           </div>
@@ -87,7 +98,7 @@ export default async function EventsPage() {
   );
 }
 
-function EventCard({ event, status }: { event: EventListItem; status: "live" | "upcoming" | "past" }) {
+function EventCard({ event, status }: { event: any; status: "live" | "upcoming" | "past" }) {
   const statusConfig = {
     live: { variant: "destructive" as const, label: "Live", icon: "🔴" },
     upcoming: { variant: "default" as const, label: "Upcoming", icon: "📅" },

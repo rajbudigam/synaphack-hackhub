@@ -1,29 +1,54 @@
-import { getUserId } from "@/server/auth";
-import { redirect } from "next/navigation";
+// import { getUserId } from "@/server/auth";
+// import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { CalendarDays, Users, Trophy, Megaphone, Plus, ArrowRight, Zap, Target } from "lucide-react";
+import { 
+  CalendarDays, 
+  Users, 
+  Trophy, 
+  Megaphone, 
+  Plus, 
+  ArrowRight, 
+  Zap, 
+  Target,
+  BarChart3,
+  Shield,
+  Crown,
+  Sparkles,
+  TrendingUp,
+  Activity,
+  Clock,
+  CheckCircle,
+  Award
+} from "lucide-react";
 
 // Mock data for demo purposes
 const mockData = {
   events: [
     {
       id: "1",
-      title: "SynapHack 3.0",
+      title: "SynapHack 3.0 Global",
       status: "active",
-      startDate: "2025-08-29",
-      _count: { teams: 45, submissions: 23, registrations: 180 }
+      startDate: "2025-01-15",
+      _count: { teams: 124, submissions: 67, registrations: 456 }
     },
     {
       id: "2",
       title: "AI Innovation Challenge",
       status: "upcoming",
-      startDate: "2025-09-15",
-      _count: { teams: 32, submissions: 18, registrations: 156 }
+      startDate: "2025-02-10",
+      _count: { teams: 89, submissions: 34, registrations: 312 }
+    },
+    {
+      id: "3",
+      title: "Web3 Builder Summit",
+      status: "planning",
+      startDate: "2025-03-05",
+      _count: { teams: 0, submissions: 0, registrations: 78 }
     }
   ],
   teams: [
@@ -45,7 +70,7 @@ const mockData = {
       id: "1",
       title: "Smart City Dashboard",
       status: "submitted",
-      submittedAt: "2025-08-30",
+      submittedAt: "2025-01-14",
       team: { name: "Code Crusaders" },
       event: { name: "SynapHack 3.0" }
     }
@@ -53,9 +78,17 @@ const mockData = {
   announcements: [
     {
       id: "1",
-      title: "Welcome to SynapHack 3.0!",
-      content: "Event starts in 2 hours. Make sure you're ready!",
-      createdAt: "2025-08-29"
+      title: "🎉 SynapHack 3.0 Now Live!",
+      content: "The biggest hackathon of the year has officially started. Over 450 participants from 50+ countries!",
+      createdAt: "2025-01-15",
+      type: "success"
+    },
+    {
+      id: "2",
+      title: "📊 New Analytics Dashboard",
+      content: "Check out our enhanced analytics with real-time insights and performance metrics.",
+      createdAt: "2025-01-14",
+      type: "info"
     }
   ]
 };
@@ -73,205 +106,230 @@ export default async function DashboardPage() {
     activeEvents: events.filter(e => e.status === 'active').length,
     totalTeams: teams.length,
     totalSubmissions: submissions.length,
-    totalUsers: 1250 // Mock data
+    totalUsers: 1847,
+    growthRate: 24.5
   };
 
+  const quickActions = [
+    {
+      title: "Event Management",
+      description: "Create and manage hackathon events with comprehensive tools",
+      icon: CalendarDays,
+      href: "/events",
+      gradient: "from-blue-500 to-cyan-500",
+      badge: "Core"
+    },
+    {
+      title: "Team Collaboration",
+      description: "Organize teams, track members, and manage collaborations",
+      icon: Users,
+      href: "/teams",
+      gradient: "from-green-500 to-emerald-500",
+      badge: null
+    },
+    {
+      title: "AI Plagiarism Detection",
+      description: "Advanced content analysis to ensure originality and fair competition",
+      icon: Shield,
+      href: "/plagiarism",
+      gradient: "from-purple-500 to-pink-500",
+      badge: "AI"
+    },
+    {
+      title: "Analytics Dashboard",
+      description: "Deep insights with predictive analytics and performance metrics",
+      icon: BarChart3,
+      href: "/analytics",
+      gradient: "from-orange-500 to-red-500",
+      badge: "Pro"
+    },
+    {
+      title: "Web3 POAPs",
+      description: "Blockchain-based achievements with NFT certificates and rewards",
+      icon: Crown,
+      href: "/poaps",
+      gradient: "from-indigo-500 to-purple-500",
+      badge: "Web3"
+    },
+    {
+      title: "Live Leaderboard",
+      description: "Real-time rankings and live event monitoring dashboard",
+      icon: Trophy,
+      href: "/leaderboard",
+      gradient: "from-yellow-500 to-orange-500",
+      badge: "Live"
+    }
+  ];
+
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your hackathons.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href="/events/create">
-              <Plus className="w-4 h-4 mr-2" />
+    <div className="space-y-8 animate-fade-in">
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/5 p-8 border border-gray-200/50 dark:border-gray-800/50">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-gradient-primary">Welcome Back!</h1>
+                <p className="text-lg text-muted-foreground">
+                  Here's what's happening with your hackathons today.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                All Systems Online
+              </span>
+            </div>
+            <Button size="lg" className="btn-gradient group">
+              <Plus className="w-5 h-5 mr-2" />
               Create Event
-            </Link>
-          </Button>
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+      {/* Enhanced Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="hover-lift card-gradient border-gradient group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Events</CardTitle>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+              <CalendarDays className="w-4 h-4 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEvents}</div>
-            <p className="text-xs text-muted-foreground">All time events</p>
+            <div className="text-3xl font-bold text-gradient-primary">{stats.totalEvents}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <TrendingUp className="w-3 h-3" />
+              +12% from last month
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Events</CardTitle>
+        <Card className="hover-lift card-gradient border-gradient group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Active Events</CardTitle>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+              <Activity className="w-4 h-4 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.activeEvents}</div>
-            <p className="text-xs text-muted-foreground">Currently running</p>
+            <div className="text-3xl font-bold text-gradient-success">{stats.activeEvents}</div>
+            <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1">
+              <CheckCircle className="w-3 h-3" />
+              Currently running
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Teams</CardTitle>
+        <Card className="hover-lift card-gradient border-gradient group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Participants</CardTitle>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              <Users className="w-4 h-4 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTeams}</div>
-            <p className="text-xs text-muted-foreground">Registered teams</p>
+            <div className="text-3xl font-bold text-gradient-primary">{stats.totalUsers.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <TrendingUp className="w-3 h-3" />
+              +{stats.growthRate}% this quarter
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Submissions</CardTitle>
+        <Card className="hover-lift card-gradient border-gradient group">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Submissions</CardTitle>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+              <Trophy className="w-4 h-4 text-white" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSubmissions}</div>
-            <p className="text-xs text-muted-foreground">Project submissions</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Users</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">Platform users</p>
+            <div className="text-3xl font-bold text-gradient-primary">{stats.totalSubmissions}</div>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Clock className="w-3 h-3" />
+              3 pending review
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Link href="/events" className="block">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="w-5 h-5 text-blue-500" />
-                Event Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create and manage hackathon events with comprehensive tools
-              </p>
-              <Button variant="outline" size="sm">
-                Manage Events
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/teams" className="block">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-green-500" />
-                Team Management
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Organize teams, track members, and manage collaborations
-              </p>
-              <Button variant="outline" size="sm">
-                View Teams
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/submissions" className="block">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                Submissions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Review and evaluate project submissions and judge entries
-              </p>
-              <Button variant="outline" size="sm">
-                View Submissions
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/analytics" className="block">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="w-5 h-5 text-purple-500" />
-                Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Advanced analytics and insights for your hackathon events
-              </p>
-              <Button variant="outline" size="sm">
-                View Analytics
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/live" className="block">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5 text-orange-500" />
-                Live Dashboard
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Real-time leaderboards and live event monitoring
-              </p>
-              <Button variant="outline" size="sm">
-                Go Live
-              </Button>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-dashed">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="w-5 h-5 text-gray-400" />
-              More Features
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Discover additional tools and integrations
-            </p>
-            <Button variant="outline" size="sm" disabled>
-              Coming Soon
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Quick Actions Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Quick Actions</h2>
+          <Badge variant="secondary" className="text-sm px-3 py-1">
+            6 Available
+          </Badge>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {quickActions.map((action, index) => (
+            <Link key={action.href} href={action.href} className="group block">
+              <Card className="hover-lift card-gradient border-gradient animate-scale-in h-full" style={{ animationDelay: `${index * 0.1}s` }}>
+                <CardHeader className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <action.icon className="w-6 h-6 text-white" />
+                    </div>
+                    {action.badge && (
+                      <Badge 
+                        variant="secondary" 
+                        className={`text-xs px-2 py-1 font-medium ${
+                          action.badge === 'AI' && 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400'
+                        } ${
+                          action.badge === 'Web3' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                        } ${
+                          action.badge === 'Pro' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400'
+                        } ${
+                          action.badge === 'Live' && 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                        } ${
+                          action.badge === 'Core' && 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                        }`}
+                      >
+                        {action.badge}
+                      </Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                    {action.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <CardDescription className="text-base leading-relaxed">
+                    {action.description}
+                  </CardDescription>
+                  <div className="flex items-center text-sm text-primary font-medium group-hover:translate-x-1 transition-transform">
+                    <span>Get Started</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Recent Activity */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent Events */}
-        <Card>
+        <Card className="hover-lift card-gradient">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              Recent Events
-              <Button variant="ghost" size="sm" asChild>
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-primary" />
+                Recent Events
+              </div>
+              <Button variant="ghost" size="sm" asChild className="hover:text-primary">
                 <Link href="/events">
                   View All
                   <ArrowRight className="w-4 h-4 ml-1" />
@@ -281,15 +339,29 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {events.slice(0, 3).map((event) => (
-                <div key={event.id} className="flex items-center justify-between border-b pb-3 last:border-b-0 last:pb-0">
-                  <div>
-                    <h4 className="font-medium">{event.title}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(event.startDate).toLocaleDateString()}
-                    </p>
+              {events.slice(0, 3).map((event, index) => (
+                <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-semibold text-sm">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{event.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(event.startDate).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
                   </div>
-                  <Badge variant={event.status === 'active' ? 'default' : 'secondary'}>
+                  <Badge 
+                    variant={event.status === 'active' ? 'default' : 'secondary'}
+                    className={`${
+                      event.status === 'active' && 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                    }`}
+                  >
                     {event.status}
                   </Badge>
                 </div>
@@ -299,21 +371,37 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Recent Announcements */}
-        <Card>
+        <Card className="hover-lift card-gradient">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Megaphone className="w-5 h-5" />
-              Announcements
+              <Megaphone className="w-5 h-5 text-primary" />
+              Latest Announcements
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {announcements.slice(0, 3).map((announcement) => (
-                <div key={announcement.id} className="space-y-2">
-                  <h4 className="font-medium text-sm">{announcement.title}</h4>
-                  <p className="text-sm text-muted-foreground">{announcement.content}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(announcement.createdAt).toLocaleDateString()}
+                <div key={announcement.id} className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors space-y-2">
+                  <div className="flex items-start justify-between">
+                    <h4 className="font-medium text-sm">{announcement.title}</h4>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ${
+                        announcement.type === 'success' && 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                      } ${
+                        announcement.type === 'info' && 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                      }`}
+                    >
+                      {announcement.type}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{announcement.content}</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {new Date(announcement.createdAt).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric'
+                    })}
                   </p>
                 </div>
               ))}

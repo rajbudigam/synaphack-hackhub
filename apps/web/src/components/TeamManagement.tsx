@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect } from 'react';
-import { joinTeam, leaveTeam, createTeam } from '@/server/queries/hackathon';
+// import { joinTeam, leaveTeam, createTeam } from '@/server/queries/hackathon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -44,7 +46,14 @@ export default function TeamManagement({ eventId, currentUser, teams, isRegistra
     setLoading(true);
     
     try {
-      await createTeam({
+      // await createTeam({
+      //   name: newTeamData.name,
+      //   description: newTeamData.description,
+      //   eventId,
+      //   leaderId: currentUser.id
+      // });
+      
+      console.log('Creating team:', {
         name: newTeamData.name,
         description: newTeamData.description,
         eventId,
@@ -52,7 +61,7 @@ export default function TeamManagement({ eventId, currentUser, teams, isRegistra
       });
       
       setShowCreateForm(false);
-      alert('Team created successfully!');
+      alert('Team created successfully! (Mock implementation)');
       window.location.reload();
     } catch (error) {
       console.error('Error creating team:', error);
@@ -66,8 +75,9 @@ export default function TeamManagement({ eventId, currentUser, teams, isRegistra
     setLoading(true);
     
     try {
-      await joinTeam(teamId, currentUser.id);
-      alert('Join request sent successfully!');
+      // await joinTeam(teamId, currentUser.id);
+      console.log('Joining team:', teamId);
+      alert('Join request sent successfully! (Mock implementation)');
       window.location.reload();
     } catch (error) {
       console.error('Error joining team:', error);
@@ -83,8 +93,9 @@ export default function TeamManagement({ eventId, currentUser, teams, isRegistra
     setLoading(true);
     
     try {
-      await leaveTeam(userTeam.id, currentUser.id);
-      alert('Left team successfully!');
+      // await leaveTeam(userTeam.id, currentUser.id);
+      console.log('Leaving team:', userTeam.id);
+      alert('Left team successfully! (Mock implementation)');
       window.location.reload();
     } catch (error) {
       console.error('Error leaving team:', error);

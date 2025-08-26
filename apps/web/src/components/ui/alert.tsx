@@ -3,7 +3,7 @@
 import * as React from "react"
 import * as AlertPrimitive from "@radix-ui/react-alert-dialog"
 
-import { cn } from "@/lib/cn"
+import { cn } from "@/lib/utils"
 
 const Alert = React.forwardRef<
   HTMLDivElement,

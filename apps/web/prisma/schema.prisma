@@ -188,6 +188,8 @@ model Submission {
   id            String   @id @default(cuid())
   title         String
   description   String?
+  content       String?  // text content for plagiarism checking
+  code          String?  // code content for plagiarism checking
   repoUrl       String?
   liveUrl       String?
   videoUrl      String?
@@ -216,6 +218,7 @@ model Submission {
 
   scores            Score[]
   plagiarismChecks  PlagiarismCheck[]
+  plagiarismReport  PlagiarismReport?
   
   @@unique([eventId, teamId, roundId])
 }
@@ -435,4 +438,48 @@ model IssuedCertificate {
   event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
   template    CertificateTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
   user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =================== PHASE 3 MODELS ===================
+
+model PlagiarismReport {
+  id             String   @id @default(cuid())
+  submissionId   String   @unique
+  createdAt      DateTime @default(now())
+  summary        String
+  maxCosine      Float
+  minHamming     Int
+  maxJaccard     Float
+  matches        PlagiarismMatch[]
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model PlagiarismMatch {
+  id               String   @id @default(cuid())
+  reportId         String
+  otherSubmissionId String
+  cosine           Float
+  hamming          Int
+  jaccard          Float
+  overlapPercent   Float
+  snippetA         String
+  snippetB         String
+  risk             String   // "low" | "medium" | "high"
+  report           PlagiarismReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+
+  @@index([reportId])
+  @@index([otherSubmissionId])
+}
+
+model PoAPMint {
+  id          String   @id @default(cuid())
+  eventId     String
+  userAddress String
+  tokenURI    String
+  txHash      String
+  createdAt   DateTime @default(now())
+  
+  @@index([eventId])
+  @@index([userAddress])
 }

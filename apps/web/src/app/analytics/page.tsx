@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { prisma } from "@/server/db";
+import { prisma } from "@/lib/prisma";
 import { EventAnalytics, EventWithRelations, TeamWithMembers } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -223,9 +223,9 @@ export default async function AnalyticsPage() {
                     <div className="font-medium">{team.name}</div>
                     <div className="text-sm text-muted-foreground flex items-center gap-2">
                       <span>{team.event?.name}</span>
-                      <Badge variant="outline" className="text-xs">
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-800">
                         {team._count?.members || 0} members
-                      </Badge>
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">
@@ -251,9 +251,9 @@ export default async function AnalyticsPage() {
                 <div key={analytic.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium">{analytic.event?.name}</h4>
-                    <Badge variant="outline">
-                      {new Date(analytic.date).toLocaleDateString()}
-                    </Badge>
+                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-800">
+                      Event Data
+                    </span>
                   </div>
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -274,36 +274,6 @@ export default async function AnalyticsPage() {
                       <div className="text-sm text-muted-foreground">Completion Rate</div>
                     </div>
                   </div>
-
-                  {/* Technology Distribution */}
-                  {false && (
-                    <div className="mt-4">
-                      <h5 className="font-medium mb-2">Popular Technologies</h5>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries({} as Record<string, number>).map(([tech, count]) => (
-                          <Badge key={tech} variant="secondary" className="flex items-center gap-1">
-                            <Code className="h-3 w-3" />
-                            {tech} ({count})
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Geographic Distribution */}
-                  {false && (
-                    <div className="mt-4">
-                      <h5 className="font-medium mb-2">Geographic Distribution</h5>
-                      <div className="flex flex-wrap gap-2">
-                        {Object.entries({} as Record<string, number>).map(([location, count]) => (
-                          <Badge key={location} variant="outline" className="flex items-center gap-1">
-                            <Globe className="h-3 w-3" />
-                            {location} ({count})
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

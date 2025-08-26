@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import { prisma } from "@/server/db";
+import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -115,12 +115,11 @@ export default async function AnnouncementsPage() {
                         <div>
                           <CardTitle className="text-lg">{announcement.title}</CardTitle>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={announcement.priority === 'high' ? 'destructive' : 
-                                          announcement.priority === 'medium' ? 'default' : 'secondary'}>
+                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-transparent bg-red-500 text-white">
                               {announcement.priority.toUpperCase()}
-                            </Badge>
+                            </span>
                             {announcement.event && (
-                              <Badge variant="outline">{announcement.event.name}</Badge>
+                              <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">{announcement.event.name}</span>
                             )}
                           </div>
                         </div>
@@ -157,9 +156,9 @@ export default async function AnnouncementsPage() {
                       </div>
                       
                       {announcement.publishAt && announcement.publishAt > new Date() && (
-                        <Badge variant="outline">
+                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">
                           Scheduled for {formatDate(announcement.publishAt)}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   </CardContent>
@@ -184,12 +183,11 @@ export default async function AnnouncementsPage() {
                       <div>
                         <CardTitle className="text-lg">{announcement.title}</CardTitle>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant={announcement.priority === 'high' ? 'destructive' : 
-                                        announcement.priority === 'medium' ? 'default' : 'secondary'}>
+                          <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-transparent bg-red-500 text-white">
                             {announcement.priority.toUpperCase()}
-                          </Badge>
+                          </span>
                           {announcement.event && (
-                            <Badge variant="outline">{announcement.event.name}</Badge>
+                            <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">{announcement.event.name}</span>
                           )}
                         </div>
                       </div>
@@ -226,9 +224,9 @@ export default async function AnnouncementsPage() {
                     </div>
                     
                     {announcement.publishAt && announcement.publishAt > new Date() && (
-                      <Badge variant="outline">
+                      <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">
                         Scheduled for {formatDate(announcement.publishAt)}
-                      </Badge>
+                      </span>
                     )}
                   </div>
                 </CardContent>
