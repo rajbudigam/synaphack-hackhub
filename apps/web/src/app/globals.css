@@ -284,3 +284,26 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--foreground);
 }
+
+/* Entropic flowing gradient background */
+.animate-river {
+  background: radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.35), transparent 60%),
+              radial-gradient(circle at 80% 80%, hsl(var(--accent) / 0.35), transparent 60%),
+              radial-gradient(circle at 80% 20%, hsl(var(--warning) / 0.25), transparent 60%),
+              radial-gradient(circle at 20% 80%, hsl(var(--success) / 0.25), transparent 60%);
+  background-size: 200% 200%;
+  animation: riverFlow 40s ease-in-out infinite alternate;
+  filter: blur(120px);
+}
+
+@keyframes riverFlow {
+  0% {
+    transform: translateX(-10%) translateY(-10%) scale(1);
+  }
+  50% {
+    transform: translateX(10%) translateY(10%) scale(1.2);
+  }
+  100% {
+    transform: translateX(-10%) translateY(-10%) scale(1);
+  }
+}

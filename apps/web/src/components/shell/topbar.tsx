@@ -9,8 +9,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Topbar() {
   return (
-    <div className="sticky top-0 z-40">
-      <div className="mx-auto flex max-w-screen-2xl items-center gap-3 px-4 py-3 md:px-6">
+    <div className="sticky top-0 z-40 border-b border-border/50 bg-card/60 backdrop-blur-xl shadow-md relative">
+      <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+      <div className="relative mx-auto flex max-w-screen-2xl items-center gap-4 px-4 py-3 md:px-6">
         {/* Search Section */}
         <div className="flex flex-1 items-center gap-3">
           <div className="relative hidden sm:block">
