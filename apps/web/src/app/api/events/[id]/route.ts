@@ -9,7 +9,7 @@ export async function GET(
   // Mock single event data
   const mockEvent = {
     id,
-    title: "SynapHack 3.0",
+  title: "HackHub 3.0",
     description: "The ultimate 48-hour hackathon",
     status: "active",
     startDate: "2025-08-29T09:00:00Z",

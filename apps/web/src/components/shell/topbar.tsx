@@ -92,12 +92,12 @@ function UserMenu() {
             <Avatar className="h-10 w-10">
               <AvatarImage src="https://i.pravatar.cc/80" />
               <AvatarFallback className="bg-gradient-to-br from-primary to-primary/60 text-white font-semibold">
-                HB
+                  HH
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-sm truncate">HackBuilder Pro</div>
-              <div className="text-xs text-muted-foreground truncate">hackbuilder@synaphack.com</div>
+              <div className="text-xs text-muted-foreground truncate">hackbuilder@hackhub.com</div>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2">

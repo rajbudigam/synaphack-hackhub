@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Target, ExternalLink, Calendar, Users, CheckCircle, Clock, Plus, Coins } from "lucide-react";
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getPOAPs() {
   try {
@@ -49,7 +50,7 @@ export default async function POAPsPage() {
   const poaps = await getPOAPs();
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-16" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -67,7 +68,7 @@ export default async function POAPsPage() {
       </div>
 
       {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-4">
+  <div className="grid gap-8 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total POAPs</CardTitle>
@@ -126,15 +127,15 @@ export default async function POAPsPage() {
       {/* POAP Collection */}
       <section>
         <h2 className="text-2xl font-semibold mb-4">Your POAP Collection</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {poaps.length > 0 ? poaps.map((poap) => (
             <Card key={poap.id} className="hover:shadow-lg transition-all duration-200 group">
               <CardHeader className="pb-3">
                 <div className="aspect-square relative overflow-hidden rounded-lg bg-gradient-to-br from-purple-400 via-pink-400 to-red-400">
-                  {poap.imageUrl ? (
+          {poap.imageUrl ? (
                     <img 
                       src={poap.imageUrl} 
-                      alt={poap.title}
+            alt={(poap as any).title ?? "POAP"}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                     />
                   ) : (
@@ -154,7 +155,7 @@ export default async function POAPsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <CardTitle className="text-lg line-clamp-1">{poap.title}</CardTitle>
+                  <CardTitle className="text-lg line-clamp-1">{("title" in poap && (poap as any).title) || "POAP"}</CardTitle>
                   <div className="flex items-center gap-2">
                     {poap.event && (
                       <Badge variant="outline">{poap.event.name}</Badge>
@@ -170,8 +171,8 @@ export default async function POAPsPage() {
               </CardHeader>
               
               <CardContent className="space-y-4">
-                <div className="text-sm text-muted-foreground line-clamp-2">
-                  {poap.description || "A unique digital collectible commemorating your participation."}
+                <div className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                  {("description" in poap && (poap as any).description) || "A unique digital collectible commemorating your participation."}
                 </div>
                 
                 <div className="flex items-center justify-between text-sm">
@@ -234,7 +235,7 @@ export default async function POAPsPage() {
       </section>
 
       {/* What are POAPs? */}
-      <section>
+  <section className="pt-6">
         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -276,6 +277,6 @@ export default async function POAPsPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+  </PageContainer>
   );
 }

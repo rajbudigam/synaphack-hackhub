@@ -71,9 +71,9 @@ interface PageProps {
 
 // Mock data
 const mockEvents: Record<string, MockEvent> = {
-  "synaphack-30": {
+  "hackhub-30": {
     id: "1",
-    title: "SynapHack 3.0",
+  title: "HackHub 3.0",
     description: "The ultimate 48-hour hackathon focused on AI, Web3, and emerging technologies.",
     status: "active",
     startDate: "2025-08-29T09:00:00Z",
@@ -109,7 +109,7 @@ const mockEvents: Record<string, MockEvent> = {
     announcements: [
       {
         id: "1",
-        title: "Welcome to SynapHack 3.0!",
+  title: "Welcome to HackHub 3.0!",
         content: "Event starts in 2 hours. Make sure you've checked in!",
         type: "general",
         createdAt: new Date("2025-08-29")

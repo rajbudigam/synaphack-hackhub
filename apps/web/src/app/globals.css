@@ -63,6 +63,12 @@
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.05), 0 1px 0 0 rgb(255 255 255 / 0.05), 0 0 8px 0 rgb(0 0 0 / 0.1);
+
+  /* Density rhythm tokens */
+  --rhythm: 1;           /* base multiplier */
+  --space: calc(8px * var(--rhythm));
+  --radius: 14px;
+  --lh: 1.25;
 }
 
 [data-theme="dark"] {
@@ -98,43 +104,164 @@
   --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.05), 0 1px 0 0 rgb(255 255 255 / 0.05), 0 0 16px 0 rgb(0 0 0 / 0.4);
 }
 
+/* Base styles with generous spacing */
 @layer base {
   * {
-    border-color: hsl(214 32% 91%);
-  }
-  
-  html {
-    scroll-behavior: smooth;
+    border-color: hsl(var(--border));
   }
   
   body {
-    background-color: hsl(var(--bg));
-    color: hsl(var(--fg));
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+    line-height: 1.8; /* More generous line height */
+    letter-spacing: 0.015em; /* Slightly more letter spacing */
   }
   
-  /* Enhanced Typography */
+  /* Generous spacing for all headings */
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 600;
-    letter-spacing: -0.025em;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem; /* Much more space after headings */
+    margin-top: 3rem;    /* Much more space before headings */
   }
   
-  h1 { font-size: 2.25rem; line-height: 2.5rem; }
-  h2 { font-size: 1.875rem; line-height: 2.25rem; }
-  h3 { font-size: 1.5rem; line-height: 2rem; }
-  h4 { font-size: 1.25rem; line-height: 1.75rem; }
-  h5 { font-size: 1.125rem; line-height: 1.75rem; }
-  h6 { font-size: 1rem; line-height: 1.5rem; }
+  h1 {
+    font-size: 3.5rem;
+    margin-bottom: 3rem;
+    margin-top: 4rem;
+  }
   
-  @media (min-width: 1024px) {
-    h1 { font-size: 3rem; line-height: 1; }
-    h2 { font-size: 2.25rem; line-height: 2.5rem; }
-    h3 { font-size: 1.875rem; line-height: 2.25rem; }
-    h4 { font-size: 1.5rem; line-height: 2rem; }
-    h5 { font-size: 1.25rem; line-height: 1.75rem; }
-    h6 { font-size: 1.125rem; line-height: 1.75rem; }
+  h2 {
+    font-size: 2.5rem;
+    margin-bottom: 2.5rem;
+    margin-top: 3.5rem;
+  }
+  
+  h3 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    margin-top: 3rem;
+  }
+  
+  h4 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  
+  /* Generous paragraph spacing */
+  p {
+    margin-bottom: 2rem; /* Much more space between paragraphs */
+    line-height: 1.8;
+  }
+  
+  /* Lists with generous spacing */
+  ul, ol {
+    margin-bottom: 2rem;
+    padding-left: 2rem;
+  }
+  
+  li {
+    margin-bottom: 1rem; /* Space between list items */
+    line-height: 1.7;
+  }
+  
+  /* Forms with generous spacing */
+  form {
+    margin-bottom: 3rem;
+  }
+  
+  .form-group {
+    margin-bottom: 2rem;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+  
+  input, textarea, select {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Buttons with generous spacing */
+  button {
+    margin: 0.5rem;
+    padding: 1rem 2rem; /* More generous button padding */
+  }
+  
+  /* Cards and containers with generous spacing */
+  .card {
+    padding: 3rem;      /* Much more generous card padding */
+    margin-bottom: 3rem; /* Much more space between cards */
+  }
+  
+  .container {
+    padding-left: 3rem;  /* More generous container padding */
+    padding-right: 3rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+  
+  /* Sections with generous spacing */
+  section {
+    padding-top: 6rem;    /* Much more section padding */
+    padding-bottom: 6rem;
+    margin-bottom: 4rem;
+  }
+  
+  /* Navigation with generous spacing */
+  nav {
+    padding: 2rem;
+  }
+  
+  nav ul {
+    margin: 0;
+  }
+  
+  nav li {
+    margin-right: 2rem;
+    margin-bottom: 0;
+  }
+  
+  /* Tables with generous spacing */
+  table {
+    margin-bottom: 3rem;
+  }
+  
+  th, td {
+    padding: 1.5rem; /* Much more generous cell padding */
+  }
+  
+  /* Images with generous spacing */
+  img {
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+  }
+  
+  /* Dividers with generous spacing */
+  hr {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+  }
+  
+  /* Code blocks with generous spacing */
+  pre, code {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+  }
+  
+  /* Links with breathing room */
+  a {
+    margin: 0 0.25rem;
+  }
+  
+  /* Blockquotes with generous spacing */
+  blockquote {
+    margin: 3rem 0;
+    padding: 2rem;
+    border-left: 4px solid var(--primary);
   }
 }
 
@@ -220,9 +347,170 @@
 }
 
 @layer utilities {
-  /* Spacing Utilities */
-  .space-y-24 > * + * { margin-top: 6rem; }
-  .space-y-32 > * + * { margin-top: 8rem; }
+  /* Density modes */
+  :root[data-density="compact"] {
+    --rhythm: 0.75;
+    --radius: 10px;
+    --lh: 1.15;
+  }
+  :root[data-density="comfy"] {
+    --rhythm: 1.15;
+    --radius: 18px;
+    --lh: 1.35;
+  }
+
+  .rhythm-p { padding: var(--space); }
+  .rhythm-gap { gap: calc(var(--space) * 1.2); }
+  .rhythm-card { border-radius: var(--radius); line-height: var(--lh); }
+
+  /* Motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .rive-anim { display: none; }
+  }
+  /* GENEROUS SPACING UTILITIES - Lots of breathing room! */
+  
+  /* Extra Large Spacing - Vertical */
+  .space-y-16 > * + * { margin-top: 4rem; }    /* 64px */
+  .space-y-20 > * + * { margin-top: 5rem; }    /* 80px */
+  .space-y-24 > * + * { margin-top: 6rem; }    /* 96px */
+  .space-y-28 > * + * { margin-top: 7rem; }    /* 112px */
+  .space-y-32 > * + * { margin-top: 8rem; }    /* 128px */
+  .space-y-36 > * + * { margin-top: 9rem; }    /* 144px */
+  .space-y-40 > * + * { margin-top: 10rem; }   /* 160px */
+  .space-y-48 > * + * { margin-top: 12rem; }   /* 192px */
+  .space-y-56 > * + * { margin-top: 14rem; }   /* 224px */
+  .space-y-64 > * + * { margin-top: 16rem; }   /* 256px */
+  .space-y-72 > * + * { margin-top: 18rem; }   /* 288px */
+  .space-y-80 > * + * { margin-top: 20rem; }   /* 320px */
+  
+  /* Extra Large Spacing - Horizontal */
+  .space-x-16 > * + * { margin-left: 4rem; }   /* 64px */
+  .space-x-20 > * + * { margin-left: 5rem; }   /* 80px */
+  .space-x-24 > * + * { margin-left: 6rem; }   /* 96px */
+  .space-x-28 > * + * { margin-left: 7rem; }   /* 112px */
+  .space-x-32 > * + * { margin-left: 8rem; }   /* 128px */
+  .space-x-36 > * + * { margin-left: 9rem; }   /* 144px */
+  .space-x-40 > * + * { margin-left: 10rem; }  /* 160px */
+  
+  /* Generous Padding Utilities */
+  .p-16 { padding: 4rem; }         /* 64px */
+  .p-20 { padding: 5rem; }         /* 80px */
+  .p-24 { padding: 6rem; }         /* 96px */
+  .p-28 { padding: 7rem; }         /* 112px */
+  .p-32 { padding: 8rem; }         /* 128px */
+  .p-40 { padding: 10rem; }        /* 160px */
+  .p-48 { padding: 12rem; }        /* 192px */
+  .p-56 { padding: 14rem; }        /* 224px */
+  .p-64 { padding: 16rem; }        /* 256px */
+  
+  /* Generous Vertical Padding */
+  .py-16 { padding-top: 4rem; padding-bottom: 4rem; }     /* 64px */
+  .py-20 { padding-top: 5rem; padding-bottom: 5rem; }     /* 80px */
+  .py-24 { padding-top: 6rem; padding-bottom: 6rem; }     /* 96px */
+  .py-28 { padding-top: 7rem; padding-bottom: 7rem; }     /* 112px */
+  .py-32 { padding-top: 8rem; padding-bottom: 8rem; }     /* 128px */
+  .py-40 { padding-top: 10rem; padding-bottom: 10rem; }   /* 160px */
+  .py-48 { padding-top: 12rem; padding-bottom: 12rem; }   /* 192px */
+  .py-56 { padding-top: 14rem; padding-bottom: 14rem; }   /* 224px */
+  .py-64 { padding-top: 16rem; padding-bottom: 16rem; }   /* 256px */
+  
+  /* Generous Horizontal Padding */
+  .px-16 { padding-left: 4rem; padding-right: 4rem; }     /* 64px */
+  .px-20 { padding-left: 5rem; padding-right: 5rem; }     /* 80px */
+  .px-24 { padding-left: 6rem; padding-right: 6rem; }     /* 96px */
+  .px-28 { padding-left: 7rem; padding-right: 7rem; }     /* 112px */
+  .px-32 { padding-left: 8rem; padding-right: 8rem; }     /* 128px */
+  .px-40 { padding-left: 10rem; padding-right: 10rem; }   /* 160px */
+  
+  /* Generous Margin Utilities */
+  .m-16 { margin: 4rem; }          /* 64px */
+  .m-20 { margin: 5rem; }          /* 80px */
+  .m-24 { margin: 6rem; }          /* 96px */
+  .m-32 { margin: 8rem; }          /* 128px */
+  .m-40 { margin: 10rem; }         /* 160px */
+  .m-48 { margin: 12rem; }         /* 192px */
+  
+  /* Generous Vertical Margins */
+  .my-16 { margin-top: 4rem; margin-bottom: 4rem; }       /* 64px */
+  .my-20 { margin-top: 5rem; margin-bottom: 5rem; }       /* 80px */
+  .my-24 { margin-top: 6rem; margin-bottom: 6rem; }       /* 96px */
+  .my-28 { margin-top: 7rem; margin-bottom: 7rem; }       /* 112px */
+  .my-32 { margin-top: 8rem; margin-bottom: 8rem; }       /* 128px */
+  .my-40 { margin-top: 10rem; margin-bottom: 10rem; }     /* 160px */
+  .my-48 { margin-top: 12rem; margin-bottom: 12rem; }     /* 192px */
+  .my-56 { margin-top: 14rem; margin-bottom: 14rem; }     /* 224px */
+  .my-64 { margin-top: 16rem; margin-bottom: 16rem; }     /* 256px */
+  
+  /* Generous Top Margins */
+  .mt-16 { margin-top: 4rem; }     /* 64px */
+  .mt-20 { margin-top: 5rem; }     /* 80px */
+  .mt-24 { margin-top: 6rem; }     /* 96px */
+  .mt-28 { margin-top: 7rem; }     /* 112px */
+  .mt-32 { margin-top: 8rem; }     /* 128px */
+  .mt-40 { margin-top: 10rem; }    /* 160px */
+  .mt-48 { margin-top: 12rem; }    /* 192px */
+  .mt-56 { margin-top: 14rem; }    /* 224px */
+  .mt-64 { margin-top: 16rem; }    /* 256px */
+  
+  /* Generous Bottom Margins */
+  .mb-16 { margin-bottom: 4rem; }  /* 64px */
+  .mb-20 { margin-bottom: 5rem; }  /* 80px */
+  .mb-24 { margin-bottom: 6rem; }  /* 96px */
+  .mb-28 { margin-bottom: 7rem; }  /* 112px */
+  .mb-32 { margin-bottom: 8rem; }  /* 128px */
+  .mb-40 { margin-bottom: 10rem; } /* 160px */
+  .mb-48 { margin-bottom: 12rem; } /* 192px */
+  .mb-56 { margin-bottom: 14rem; } /* 224px */
+  .mb-64 { margin-bottom: 16rem; } /* 256px */
+  
+  /* Gap Utilities for Flexbox/Grid */
+  .gap-16 { gap: 4rem; }           /* 64px */
+  .gap-20 { gap: 5rem; }           /* 80px */
+  .gap-24 { gap: 6rem; }           /* 96px */
+  .gap-28 { gap: 7rem; }           /* 112px */
+  .gap-32 { gap: 8rem; }           /* 128px */
+  .gap-40 { gap: 10rem; }          /* 160px */
+  .gap-48 { gap: 12rem; }          /* 192px */
+  
+  /* Generous Section Spacing */
+  .section-spacing {
+    padding-top: 8rem;    /* 128px */
+    padding-bottom: 8rem; /* 128px */
+  }
+  
+  .section-spacing-lg {
+    padding-top: 12rem;   /* 192px */
+    padding-bottom: 12rem; /* 192px */
+  }
+  
+  .section-spacing-xl {
+    padding-top: 16rem;   /* 256px */
+    padding-bottom: 16rem; /* 256px */
+  }
+  
+  /* Generous Container Spacing */
+  .container-spacing {
+    padding-left: 4rem;   /* 64px */
+    padding-right: 4rem;  /* 64px */
+  }
+  
+  .container-spacing-lg {
+    padding-left: 6rem;   /* 96px */
+    padding-right: 6rem;  /* 96px */
+  }
+  
+  /* Card Spacing */
+  .card-spacing {
+    padding: 3rem;        /* 48px */
+  }
+  
+  .card-spacing-lg {
+    padding: 4rem;        /* 64px */
+  }
+  
+  .card-spacing-xl {
+    padding: 6rem;        /* 96px */
+  }
   
   /* Background Patterns */
   .bg-dot-pattern {
@@ -236,6 +524,11 @@
       linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
     background-size: 20px 20px;
   }
+
+  /* River intensity helpers */
+  .river-subtle .animate-river { opacity: 0.4; }
+  .river-medium .animate-river { opacity: 0.6; }
+  .river-strong .animate-river { opacity: 0.9; }
 }
 
 /* Keyframe Animations */
@@ -287,14 +580,26 @@
 
 /* Entropic flowing gradient background */
 .animate-river {
-  background: radial-gradient(circle at 20% 20%, hsl(var(--primary) / 0.35), transparent 60%),
-              radial-gradient(circle at 80% 80%, hsl(var(--accent) / 0.35), transparent 60%),
-              radial-gradient(circle at 80% 20%, hsl(var(--warning) / 0.25), transparent 60%),
-              radial-gradient(circle at 20% 80%, hsl(var(--success) / 0.25), transparent 60%);
+  --river-opacity-primary: 0.35;
+  --river-opacity-accent: 0.35;
+  --river-opacity-warning: 0.25;
+  --river-opacity-success: 0.25;
+  --river-blur: 120px;
+  --river-speed: 40s;
+  background: radial-gradient(circle at 20% 20%, hsl(var(--primary) / var(--river-opacity-primary)), transparent 60%),
+              radial-gradient(circle at 80% 80%, hsl(var(--accent) / var(--river-opacity-accent)), transparent 60%),
+              radial-gradient(circle at 80% 20%, hsl(var(--warning) / var(--river-opacity-warning)), transparent 60%),
+              radial-gradient(circle at 20% 80%, hsl(var(--success) / var(--river-opacity-success)), transparent 60%);
   background-size: 200% 200%;
-  animation: riverFlow 40s ease-in-out infinite alternate;
-  filter: blur(120px);
+  animation: riverFlow var(--river-speed) ease-in-out infinite alternate;
+  filter: blur(var(--river-blur));
 }
+
+/* River intensity utilities */
+.river-subtle .animate-river { --river-opacity-primary: 0.2; --river-opacity-accent: 0.2; --river-opacity-warning: 0.15; --river-opacity-success: 0.15; --river-blur: 140px; }
+.river-medium .animate-river { --river-opacity-primary: 0.35; --river-opacity-accent: 0.35; --river-opacity-warning: 0.25; --river-opacity-success: 0.25; --river-blur: 120px; }
+.river-strong .animate-river { --river-opacity-primary: 0.5; --river-opacity-accent: 0.5; --river-opacity-warning: 0.4; --river-opacity-success: 0.4; --river-blur: 100px; }
+.river-off .animate-river { --river-opacity-primary: 0; --river-opacity-accent: 0; --river-opacity-warning: 0; --river-opacity-success: 0; --river-blur: 0; }
 
 @keyframes riverFlow {
   0% {

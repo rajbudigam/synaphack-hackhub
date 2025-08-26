@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Megaphone, Calendar, Clock, AlertCircle, Info, CheckCircle, Plus } from "lucide-react";
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getAnnouncements() {
   try {
@@ -80,7 +81,7 @@ export default async function AnnouncementsPage() {
   const announcements = await getAnnouncements();
 
   return (
-    <div className="space-y-8">
+  <PageContainer className="space-y-16" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -98,9 +99,9 @@ export default async function AnnouncementsPage() {
       </div>
 
       {/* Urgent Announcements */}
-      {announcements.some(a => a.priority === 'urgent') && (
+    {announcements.some(a => a.priority === 'urgent') && (
         <section>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+      <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
             📌 Urgent Announcements
           </h2>
           <div className="space-y-4">
@@ -155,9 +156,9 @@ export default async function AnnouncementsPage() {
                         </span>
                       </div>
                       
-                      {announcement.publishAt && announcement.publishAt > new Date() && (
+            {(announcement as any).publishAt && ((announcement as any).publishAt as Date) > new Date() && (
                         <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">
-                          Scheduled for {formatDate(announcement.publishAt)}
+              Scheduled for {formatDate((announcement as any).publishAt as Date)}
                         </span>
                       )}
                     </div>
@@ -170,7 +171,7 @@ export default async function AnnouncementsPage() {
 
       {/* All Announcements */}
       <section>
-        <h2 className="text-xl font-semibold mb-4">All Announcements</h2>
+        <h2 className="text-2xl font-semibold mb-6">All Announcements</h2>
         <div className="space-y-4">
           {announcements.length > 0 ? announcements
             .filter(announcement => announcement.priority !== 'urgent')
@@ -223,9 +224,9 @@ export default async function AnnouncementsPage() {
                       </span>
                     </div>
                     
-                    {announcement.publishAt && announcement.publishAt > new Date() && (
+          {(announcement as any).publishAt && ((announcement as any).publishAt as Date) > new Date() && (
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-700">
-                        Scheduled for {formatDate(announcement.publishAt)}
+            Scheduled for {formatDate((announcement as any).publishAt as Date)}
                       </span>
                     )}
                   </div>
@@ -250,6 +251,6 @@ export default async function AnnouncementsPage() {
           )}
         </div>
       </section>
-    </div>
+  </PageContainer>
   );
 }

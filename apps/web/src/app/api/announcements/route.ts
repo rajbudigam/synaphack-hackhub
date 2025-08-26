@@ -5,7 +5,7 @@ export async function GET() {
   const mockAnnouncements = [
     {
       id: "1",
-      title: "Welcome to SynapHack 3.0!",
+  title: "Welcome to HackHub 3.0!",
       content: "Get ready for 48 hours of intense coding and innovation. Check-in starts at 9 AM.",
       type: "general",
       priority: "high",

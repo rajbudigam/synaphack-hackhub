@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
-import { EventAnalytics, EventWithRelations, TeamWithMembers } from "@/types/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,26 +16,19 @@ import {
   Download,
   RefreshCw
 } from "lucide-react";
+import { PageContainer } from "@/components/PageContainer";
 
 export default async function AnalyticsPage() {
-  // Fetch analytics data
-  const analytics = await prisma.eventAnalytics.findMany({
-    include: {
-      event: {
-        select: { name: true, slug: true }
-      }
-    },
-    orderBy: { date: "desc" },
-    take: 10
-  });
+  // Note: Some environments may not have the EventAnalytics model generated yet.
+  // We compute aggregates directly from core tables to avoid client mismatch.
 
   // Aggregate stats
   const totalEvents = await prisma.event.count();
-  const totalParticipants = await prisma.user.count({ where: { role: "PARTICIPANT" } });
+  const totalParticipants = await prisma.user.count({ where: { role: "participant" } });
   const totalTeams = await prisma.team.count();
   const totalSubmissions = await prisma.submission.count();
-  const totalJudges = await prisma.user.count({ where: { role: "JUDGE" } });
-  const totalMentors = await prisma.user.count({ where: { role: "MENTOR" } });
+  const totalJudges = await prisma.user.count({ where: { role: "judge" } });
+  const totalMentors = await prisma.user.count({ where: { role: "mentor" } });
 
   // Recent events with participation
   const recentEvents = await prisma.event.findMany({
@@ -68,7 +60,7 @@ export default async function AnalyticsPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-12" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
@@ -171,20 +163,20 @@ export default async function AnalyticsPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+  <div className="grid gap-8 lg:grid-cols-2">
         {/* Recent Events Performance */}
-        <Card>
+  <Card className="card-spacing">
           <CardHeader>
             <CardTitle>Recent Events Performance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentEvents.map((event) => (
+        {recentEvents.map((event) => (
                 <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">{event.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(event.startsAt).toLocaleDateString()}
+          {new Date((event as any).startsAt ?? (event as any).startDate ?? event.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-center">
@@ -208,7 +200,7 @@ export default async function AnalyticsPage() {
         </Card>
 
         {/* Top Performing Teams */}
-        <Card>
+  <Card className="card-spacing">
           <CardHeader>
             <CardTitle>Top Performing Teams</CardTitle>
           </CardHeader>
@@ -239,50 +231,7 @@ export default async function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Detailed Analytics */}
-      {analytics.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Detailed Event Analytics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {analytics.map((analytic: EventAnalytics & { event?: { name: string; slug: string } }) => (
-                <div key={analytic.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium">{analytic.event?.name}</h4>
-                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-gray-200 dark:border-gray-800">
-                      Event Data
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{analytic.registrations}</div>
-                      <div className="text-sm text-muted-foreground">Participants</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{analytic.submissions}</div>
-                      <div className="text-sm text-muted-foreground">Submissions</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{analytic.teams}</div>
-                      <div className="text-sm text-muted-foreground">Teams</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold">{analytic.pageViews}</div>
-                      <div className="text-sm text-muted-foreground">Page Views</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-sm text-muted-foreground">
-                    Recorded on: {analytic.date.toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+  {/* Detailed Analytics (optional: requires EventAnalytics model) */}
+  </PageContainer>
   );
 }

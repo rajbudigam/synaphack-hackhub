@@ -4,11 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Trophy, Plus, Clock } from "lucide-react";
+import { PageContainer } from "@/components/PageContainer";
 
 export default async function EventsPage() {
   const events = await prisma.event.findMany({
     include: {
-      tracks: true,
       _count: {
         select: {
           teams: true,
@@ -16,7 +16,7 @@ export default async function EventsPage() {
         }
       }
     },
-    orderBy: { startsAt: "desc" }
+    orderBy: { createdAt: "desc" }
   });
 
   const upcomingEvents = events.filter((e: any) => new Date(e.startsAt) > new Date());
@@ -26,7 +26,7 @@ export default async function EventsPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-16" size="lg">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -94,7 +94,7 @@ export default async function EventsPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+  </PageContainer>
   );
 }
 
@@ -148,23 +148,17 @@ function EventCard({ event, status }: { event: any; status: "live" | "upcoming" 
             </span>
           </div>
 
-          {event.tracks && event.tracks.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Trophy className="w-4 h-4" />
-              <div className="flex flex-wrap gap-1">
-                {event.tracks.slice(0, 2).map((track: { id: string; name: string }) => (
-                  <Badge key={track.id} variant="outline" className="text-xs">
-                    {track.name}
-                  </Badge>
-                ))}
-                {event.tracks.length > 2 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{event.tracks.length - 2} more
-                  </Badge>
-                )}
-              </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Trophy className="w-4 h-4" />
+            <div className="flex flex-wrap gap-1">
+              <Badge variant="outline" className="text-xs">
+                {event._count?.teams || 0} teams
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {event._count?.registrations || 0} registrations
+              </Badge>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Actions */}

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Award, Download, Calendar, Users, CheckCircle, Clock, Plus } from "lucide-react";
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getCertificates() {
   try {
@@ -49,7 +50,7 @@ export default async function CertificatesPage() {
   const certificates = await getCertificates();
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-16" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -132,7 +133,7 @@ export default async function CertificatesPage() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
-                    <CardTitle className="text-xl">{certificate.title}</CardTitle>
+                    <CardTitle className="text-xl">{certificate.type?.toString().replace(/_/g, " ") || "Certificate"}</CardTitle>
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium border-transparent bg-blue-500 text-white">
                         {certificate.issued ? "Issued" : "Pending"}
@@ -148,9 +149,9 @@ export default async function CertificatesPage() {
                     <div className="text-sm text-muted-foreground">
                       Issued on {formatDate(certificate.createdAt)}
                     </div>
-                    {certificate.issued && certificate.verificationCode && (
+          {"verificationCode" in certificate && (certificate as any).verificationCode && (
                       <div className="text-xs text-green-600 mt-1">
-                        Verification: {certificate.verificationCode.slice(0, 12)}...
+            Verification: {String((certificate as any).verificationCode).slice(0, 12)}...
                       </div>
                     )}
                   </div>
@@ -158,9 +159,11 @@ export default async function CertificatesPage() {
               </CardHeader>
               
               <CardContent className="space-y-4">
-                <div className="prose prose-sm max-w-none dark:prose-invert">
-                  <p>{certificate.description}</p>
-                </div>
+        {"description" in certificate && (certificate as any).description && (
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+          <p>{(certificate as any).description}</p>
+                  </div>
+                )}
                 
                 <div className="flex items-center justify-between pt-2 border-t">
                   <div className="flex items-center gap-2">
@@ -171,9 +174,9 @@ export default async function CertificatesPage() {
                   </div>
                   
                   <div className="flex gap-2">
-                    {certificate.pdfUrl && (
+          {(("pdfUrl" in certificate && (certificate as any).pdfUrl) || ("certificateUrl" in certificate && (certificate as any).certificateUrl)) && (
                       <Button size="sm" variant="outline" asChild>
-                        <a href={certificate.pdfUrl} download>
+            <a href={(certificate as any).pdfUrl ?? (certificate as any).certificateUrl} download>
                           <Download className="h-4 w-4 mr-2" />
                           Download
                         </a>
@@ -207,6 +210,6 @@ export default async function CertificatesPage() {
           )}
         </div>
       </section>
-    </div>
+  </PageContainer>
   );
 }

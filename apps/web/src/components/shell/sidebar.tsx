@@ -257,7 +257,7 @@ export function Sidebar() {
             <Zap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-lg text-gradient-primary">SynapHack</h1>
+            <h1 className="font-bold text-lg text-gradient-primary">HackHub</h1>
             <p className="text-xs text-muted-foreground">Next-Gen Platform</p>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Shield, AlertTriangle, CheckCircle, Clock, Upload, FileText, Scan, Plus } from "lucide-react";
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getPlagiarismReports() {
   try {
@@ -103,7 +104,7 @@ export default async function PlagiarismPage() {
   const reviewReports = reports.filter(r => r.status === 'review').length;
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-12" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -366,6 +367,6 @@ export default async function PlagiarismPage() {
           </Card>
         </div>
       </section>
-    </div>
+  </PageContainer>
   );
 }

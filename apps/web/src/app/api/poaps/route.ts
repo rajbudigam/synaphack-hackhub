@@ -6,16 +6,16 @@ export async function GET() {
     {
       id: "poap_1",
       eventId: "1",
-      eventName: "SynapHack 3.0",
+  eventName: "HackHub 3.0",
       recipientId: "user1",
       recipientAddress: "0x1234...5678",
       tokenId: "12345",
       imageUrl: "https://poap.example.com/image/12345.png",
       metadata: {
-        name: "SynapHack 3.0 Participant",
-        description: "Proof of participation in SynapHack 3.0",
+  name: "HackHub 3.0 Participant",
+  description: "Proof of participation in HackHub 3.0",
         attributes: [
-          { trait_type: "Event", value: "SynapHack 3.0" },
+          { trait_type: "Event", value: "HackHub 3.0" },
           { trait_type: "Role", value: "Participant" },
           { trait_type: "Year", value: "2025" }
         ]

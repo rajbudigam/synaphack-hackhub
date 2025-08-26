@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, Users, Trophy, Settings } from 'lucide-react';
+import NLForm, { Parsed } from "@/components/NLForm";
 
 interface EventFormData {
   name: string;
@@ -80,13 +81,32 @@ export default function CreateEventForm() {
 
   const renderStep1 = () => (
     <div className="space-y-6">
+      {/* Natural-language one-box form (premium fast path) */}
+      <Card className="card-gradient border-gradient">
+        <CardContent className="p-6 space-y-4">
+          <div className="text-sm text-muted-foreground">Describe your event in plain English — we’ll parse the details.</div>
+          <NLForm onSubmit={(p: Parsed) => {
+            setFormData((prev) => ({
+              ...prev,
+              name: p.title ?? prev.name,
+              // Map date/time heuristically to startsAt if provided
+              startsAt: p.date ? `${p.date}${p.time ? `T${p.time}` : ""}` : prev.startsAt,
+              // Use location keywords to set mode as a hint
+              mode: p.location ? (p.location.toLowerCase().includes("lab") || p.location.toLowerCase().includes("hall") ? 'offline' : prev.mode) : prev.mode,
+              maxTeams: p.max ?? prev.maxTeams,
+            }));
+          }} />
+          <div className="text-xs text-muted-foreground">You can still fine-tune below — this is just a head start.</div>
+        </CardContent>
+      </Card>
+      {/* Traditional fields */}
       <div className="grid gap-4">
         <div>
           <label className="block text-sm font-medium mb-2">Event Name *</label>
           <Input
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
-            placeholder="SynapHack 3.0 Global Championship"
+            placeholder="HackHub 3.0 Global Championship"
             required
           />
         </div>

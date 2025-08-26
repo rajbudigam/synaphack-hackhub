@@ -19,6 +19,7 @@ import {
   Download
 } from "lucide-react";
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getSubmissions(): Promise<any[]> {
   const submissions = await prisma.submission.findMany({
@@ -33,7 +34,7 @@ async function getSubmissions(): Promise<any[]> {
           }
         }
       },
-      round: true,
+  // round relation omitted to avoid client mismatch
       _count: {
         select: {
           scores: true
@@ -56,7 +57,7 @@ export default async function SubmissionsPage() {
     .slice(0, 6);
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-16" size="lg">
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
@@ -90,7 +91,7 @@ export default async function SubmissionsPage() {
       )}
 
       {/* Top Rated */}
-      <section className="space-y-4">
+  <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Top Rated</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {topSubmissions.map((submission: any) => (
@@ -100,7 +101,7 @@ export default async function SubmissionsPage() {
       </section>
 
       {/* Recent Submissions */}
-      <section className="space-y-4">
+  <section className="space-y-6">
         <h2 className="text-2xl font-semibold">Recent Submissions</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {recentSubmissions.map((submission: any) => (
@@ -110,7 +111,7 @@ export default async function SubmissionsPage() {
       </section>
 
       {/* All Submissions Table */}
-      <section className="space-y-4">
+  <section className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">All Submissions</h2>
           <Button variant="outline" size="sm">
@@ -226,7 +227,7 @@ export default async function SubmissionsPage() {
           </div>
         </div>
       </section>
-    </div>
+  </PageContainer>
   );
 }
 

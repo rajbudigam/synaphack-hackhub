@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, MessageCircle, Calendar, Users, Star, Clock, Plus, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getMentors() {
   try {
@@ -114,7 +115,7 @@ export default async function MentorsPage() {
   const sessions = await getMentorshipSessions();
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-12" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -354,6 +355,6 @@ export default async function MentorsPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+  </PageContainer>
   );
 }

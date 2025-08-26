@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trophy, Medal, Award, Users, Target } from "lucide-react";
+import { PageContainer } from "@/components/PageContainer";
 
 async function getLeaderboardData() {
   try {
@@ -67,7 +68,7 @@ export default async function LeaderboardPage() {
   const teams = await getLeaderboardData();
 
   return (
-    <div className="space-y-8">
+    <PageContainer className="space-y-16" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -79,7 +80,7 @@ export default async function LeaderboardPage() {
       </div>
 
       {/* Top 3 Teams */}
-      {teams.length > 0 && (
+  {teams.length > 0 && (
         <section>
           <h2 className="text-2xl font-semibold mb-4">Top Performers</h2>
           <div className="grid gap-6 md:grid-cols-3">
@@ -131,7 +132,7 @@ export default async function LeaderboardPage() {
       )}
 
       {/* Full Rankings */}
-      <section>
+  <section>
         <h2 className="text-2xl font-semibold mb-4">Full Rankings</h2>
         <Card>
           <CardContent className="p-0">
@@ -201,6 +202,6 @@ export default async function LeaderboardPage() {
           </CardContent>
         </Card>
       </section>
-    </div>
+  </PageContainer>
   );
 }

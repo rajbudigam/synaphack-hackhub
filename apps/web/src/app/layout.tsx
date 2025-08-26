@@ -6,18 +6,20 @@ import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { CommandMenu } from "@/components/shell/command-menu";
 import { FlowBackground } from "@/components/FlowBackground";
+import Providers from "./Providers";
 
 export const metadata = { 
-  title: "SynapHack - Next-Gen Hackathon Platform", 
+  title: "HackHub - Next-Gen Hackathon Platform", 
   description: "AI-powered hackathon platform with Web3 integration, real-time collaboration, and advanced analytics" 
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
+  <body className="antialiased river-medium">
         <ClerkProvider>
           <ThemeProvider>
+            <Providers>
             <div className="min-h-screen bg-background">
               <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-screen">
                 {/* Enhanced Sidebar */}
@@ -31,11 +33,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Topbar />
 
                   {/* Dynamic flowing background */}
-                  <FlowBackground>{children}</FlowBackground>
+                          <FlowBackground intensity="subtle">
+                    {children}
+                  </FlowBackground>
                 </main>
               </div>
               <CommandMenu />
             </div>
+            </Providers>
           </ThemeProvider>
         </ClerkProvider>
       </body>
