@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "node server.js",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prisma:generate": "dotenv -e ../../.env -- prisma generate --schema=../../prisma/schema.prisma",
+    "prisma:push": "dotenv -e ../../.env -- prisma db push --schema=../../prisma/schema.prisma",
+    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev --schema=../../prisma/schema.prisma",
+    "prisma:studio": "dotenv -e ../../.env -- prisma studio --schema=../../prisma/schema.prisma"
   },
   "prisma": {
     "seed": "node prisma/seed.mjs"
@@ -60,6 +64,7 @@
     "@types/react-dom": "^19",
     "@types/qrcode": "^1.5.5",
     "autoprefixer": "^10.4.21",
+    "dotenv-cli": "^7.4.2",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "eslint-plugin-react-hooks": "^5.2.0",

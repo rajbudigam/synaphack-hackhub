@@ -143,6 +143,15 @@ export interface EventAnalytics {
   eventId: string;
 }
 
+export interface Analytics {
+  id: string;
+  metric: string;
+  value: number;
+  dimension: string | null;
+  timestamp: Date;
+  metadata: string | null;
+}
+
 // Types with related data that match database queries
 export interface EventWithRelations extends Event {
   tracks: Track[];

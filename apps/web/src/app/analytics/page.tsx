@@ -247,7 +247,7 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {analytics.map((analytic) => (
+              {analytics.map((analytic: EventAnalytics & { event?: { name: string; slug: string } }) => (
                 <div key={analytic.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium">{analytic.event?.name}</h4>
@@ -266,13 +266,16 @@ export default async function AnalyticsPage() {
                       <div className="text-sm text-muted-foreground">Submissions</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold">{Math.round(analytic.registrations / analytic.teams) || 0}</div>
-                      <div className="text-sm text-muted-foreground">Avg Team Size</div>
+                      <div className="text-2xl font-bold">{analytic.teams}</div>
+                      <div className="text-sm text-muted-foreground">Teams</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold">{Math.round((analytic.submissions / analytic.teams) * 100) || 0}%</div>
-                      <div className="text-sm text-muted-foreground">Completion Rate</div>
+                      <div className="text-2xl font-bold">{analytic.pageViews}</div>
+                      <div className="text-sm text-muted-foreground">Page Views</div>
                     </div>
+                  </div>
+                  <div className="mt-4 text-sm text-muted-foreground">
+                    Recorded on: {analytic.date.toLocaleDateString()}
                   </div>
                 </div>
               ))}

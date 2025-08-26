@@ -1,0 +1,23 @@
+{
+  "name": "synaphack-hackhub",
+  "version": "1.0.0",
+  "description": "A project for managing hackathons and related activities.",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prisma": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^latest"
+  },
+  "devDependencies": {
+    "typescript": "^latest",
+    "ts-node": "^latest",
+    "prisma": "^latest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
