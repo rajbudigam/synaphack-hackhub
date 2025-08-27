@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Zap,
   Trophy,
@@ -31,7 +32,55 @@ import {
   Grid3X3,
   Hexagon,
   Wand2,
+  Menu,
+  LayoutDashboard,
+  Calendar,
+  Settings
 } from "lucide-react";
+
+// Navigation Header Component
+function NavigationHeader() {
+  return (
+    <div className="sticky top-0 z-50 border-b border-border/50 bg-card/60 backdrop-blur-xl shadow-md">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="font-bold text-lg">HackHub</h1>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard">
+              <Button variant="ghost" className="flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/events">
+              <Button variant="ghost" className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Events
+              </Button>
+            </Link>
+            <Link href="/teams">
+              <Button variant="ghost" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Teams
+              </Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+                Get Started
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const features = [
   {
@@ -131,6 +180,9 @@ const achievements = [
 export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Navigation Header */}
+      <NavigationHeader />
+      
       {/* Ambient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-violet-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950/30" />
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.02]" />

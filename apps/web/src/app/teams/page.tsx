@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Trophy, Plus, UserPlus, Settings, Eye } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
+import { ShellLayout } from "@/components/shell/shell-layout";
 
 export default async function TeamsPage() {
   const teams = await prisma.team.findMany({
@@ -37,7 +38,8 @@ export default async function TeamsPage() {
   const allTeams = teams;
 
   return (
-    <PageContainer className="space-y-16" size="lg">
+    <ShellLayout>
+      <PageContainer className="space-y-16" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Teams</h1>
@@ -90,7 +92,8 @@ export default async function TeamsPage() {
           </CardContent>
         </Card>
       )}
-  </PageContainer>
+      </PageContainer>
+    </ShellLayout>
   );
 }
 

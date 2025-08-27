@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ShellLayout } from "@/components/shell/shell-layout";
 import { Trophy, Medal, Award, Users, Target } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 
@@ -68,7 +69,8 @@ export default async function LeaderboardPage() {
   const teams = await getLeaderboardData();
 
   return (
-    <PageContainer className="space-y-16" size="lg">
+    <ShellLayout>
+      <PageContainer className="space-y-16" size="lg">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -202,6 +204,7 @@ export default async function LeaderboardPage() {
           </CardContent>
         </Card>
       </section>
-  </PageContainer>
+      </PageContainer>
+    </ShellLayout>
   );
 }

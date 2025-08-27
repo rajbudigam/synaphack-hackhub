@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Trophy, Plus, Clock } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
+import { ShellLayout } from "@/components/shell/shell-layout";
 
 export default async function EventsPage() {
   const events = await prisma.event.findMany({
@@ -26,7 +27,8 @@ export default async function EventsPage() {
   );
 
   return (
-    <PageContainer className="space-y-16" size="lg">
+    <ShellLayout>
+      <PageContainer className="space-y-16" size="lg">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -94,7 +96,8 @@ export default async function EventsPage() {
           </CardContent>
         </Card>
       )}
-  </PageContainer>
+      </PageContainer>
+    </ShellLayout>
   );
 }
 
