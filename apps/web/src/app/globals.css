@@ -2,682 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Magical Flowing River Animations */
-@keyframes flow-right {
-  0% { transform: translateX(-100%) rotate(-12deg); }
-  100% { transform: translateX(100%) rotate(-12deg); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-  25% { transform: translateY(-20px) rotate(90deg); opacity: 0.7; }
-  50% { transform: translateY(-10px) rotate(180deg); opacity: 1; }
-  75% { transform: translateY(-30px) rotate(270deg); opacity: 0.7; }
-}
-
-@keyframes shimmer {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateX(100%); opacity: 0; }
-}
-
-@keyframes shimmer-delayed {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 0.8; }
-  100% { transform: translateX(100%); opacity: 0; }
-}
-
-@keyframes shimmer-delayed-2 {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 0.6; }
-  100% { transform: translateX(100%); opacity: 0; }
-}
-
-@keyframes magical-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1); }
-  50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.2); }
-}
-
-@keyframes magical-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.8; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
-
-.animate-flow-right {
-  animation: flow-right linear infinite;
-}
-
-.animate-float {
-  animation: float ease-in-out infinite;
-}
-
-.animate-shimmer {
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-.animate-shimmer-delayed {
-  animation: shimmer-delayed 4s ease-in-out infinite 1s;
-}
-
-.animate-shimmer-delayed-2 {
-  animation: shimmer-delayed-2 5s ease-in-out infinite 2s;
-}
-
-.animate-magical-glow {
-  animation: magical-glow 4s ease-in-out infinite;
-}
-
-.animate-magical-pulse {
-  animation: magical-pulse 3s ease-in-out infinite;
-}
-
-/* Enhanced Design System with Modern Gradients and Shadows */
+/* global rhythm knobs */
 :root {
-  /* Core Colors */
-  --bg: 0 0% 100%;
-  --fg: 222 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 84% 4.9%;
-  
-  /* Muted Colors */
-  --muted: 210 40% 98%;
-  --muted-foreground: 215 13% 65%;
-  
-  /* Border and Ring */
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 222 84% 4.9%;
-  
-  /* Primary Brand */
-  --primary: 221 83% 53%;
-  --primary-foreground: 210 40% 98%;
-  
-  /* Secondary Colors */
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 84% 4.9%;
-  
-  /* Accent Colors */
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 84% 4.9%;
-  
-  /* Destructive */
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 40% 98%;
-  
-  /* Success */
-  --success: 142 76% 36%;
-  --success-foreground: 355 100% 97%;
-  
-  /* Warning */
-  --warning: 32 95% 44%;
-  --warning-foreground: 355 100% 97%;
-  
-  /* Custom Gradients */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  
-  /* Glass Morphism */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-backdrop: blur(16px);
-  
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.05), 0 1px 0 0 rgb(255 255 255 / 0.05), 0 0 8px 0 rgb(0 0 0 / 0.1);
-
-  /* Density rhythm tokens */
-  --rhythm: 1;           /* base multiplier */
-  --space: calc(8px * var(--rhythm));
-  --radius: 14px;
-  --lh: 1.25;
+  --rhythm: 1.1;             /* 1.0–1.2; higher = more air */
+  --space-1: calc(4px  * var(--rhythm));
+  --space-2: calc(8px  * var(--rhythm));
+  --space-3: calc(12px * var(--rhythm));
+  --space-4: calc(16px * var(--rhythm));
+  --space-5: calc(20px * var(--rhythm));
+  --space-6: calc(24px * var(--rhythm));
+  --space-8: calc(32px * var(--rhythm));
+  --space-10: calc(40px * var(--rhythm));
+  --radius: 1.25rem;
 }
 
-[data-theme="dark"] {
-  --bg: 222 84% 4.9%;
-  --fg: 210 40% 98%;
-  --card: 222 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --muted: 217 32% 17%;
-  --muted-foreground: 215 20% 65%;
-  --border: 217 32% 17%;
-  --input: 217 32% 17%;
-  --ring: 212 72% 59%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222 84% 4.9%;
-  --secondary: 217 32% 17%;
-  --secondary-foreground: 210 40% 98%;
-  --accent: 217 32% 17%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 210 40% 98%;
-  --success: 142 76% 36%;
-  --success-foreground: 355 100% 97%;
-  --warning: 32 95% 44%;
-  --warning-foreground: 355 100% 97%;
-  
-  /* Dark Glass Morphism */
-  --glass-bg: rgba(0, 0, 0, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.05);
-  
-  /* Dark Shadows */
-  --shadow-glow: 0 0 0 1px rgb(255 255 255 / 0.05), 0 1px 0 0 rgb(255 255 255 / 0.05), 0 0 16px 0 rgb(0 0 0 / 0.4);
-}
-
-/* Base styles with generous spacing */
 @layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
-  
+  html { font-feature-settings: "liga","calt","ss01","cv05"; }
   body {
-    background: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
-    line-height: 1.8; /* More generous line height */
-    letter-spacing: 0.015em; /* Slightly more letter spacing */
+    @apply antialiased bg-zinc-50 text-zinc-900;
+    letter-spacing: 0.005em;     /* micro-wide for UI text */
+    line-height: 1.35;           /* comfy everywhere */
   }
-  
-  /* Generous spacing for all headings */
-  h1, h2, h3, h4, h5, h6 {
-    line-height: 1.3;
-    letter-spacing: -0.02em;
-    margin-bottom: 2rem; /* Much more space after headings */
-    margin-top: 3rem;    /* Much more space before headings */
-  }
-  
-  h1 {
-    font-size: 3.5rem;
-    margin-bottom: 3rem;
-    margin-top: 4rem;
-  }
-  
-  h2 {
-    font-size: 2.5rem;
-    margin-bottom: 2.5rem;
-    margin-top: 3.5rem;
-  }
-  
-  h3 {
-    font-size: 2rem;
-    margin-bottom: 2rem;
-    margin-top: 3rem;
-  }
-  
-  h4 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    margin-top: 2.5rem;
-  }
-  
-  /* Generous paragraph spacing */
-  p {
-    margin-bottom: 2rem; /* Much more space between paragraphs */
-    line-height: 1.8;
-  }
-  
-  /* Lists with generous spacing */
-  ul, ol {
-    margin-bottom: 2rem;
-    padding-left: 2rem;
-  }
-  
-  li {
-    margin-bottom: 1rem; /* Space between list items */
-    line-height: 1.7;
-  }
-  
-  /* Forms with generous spacing */
-  form {
-    margin-bottom: 3rem;
-  }
-  
-  .form-group {
-    margin-bottom: 2rem;
-  }
-  
-  label {
-    display: block;
-    margin-bottom: 0.75rem;
-  }
-  
-  input, textarea, select {
-    margin-bottom: 1.5rem;
-  }
-  
-  /* Buttons with generous spacing */
-  button {
-    margin: 0.5rem;
-    padding: 1rem 2rem; /* More generous button padding */
-  }
-  
-  /* Cards and containers with generous spacing */
-  .card {
-    padding: 3rem;      /* Much more generous card padding */
-    margin-bottom: 3rem; /* Much more space between cards */
-  }
-  
-  .container {
-    padding-left: 3rem;  /* More generous container padding */
-    padding-right: 3rem;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-  }
-  
-  /* Sections with generous spacing */
-  section {
-    padding-top: 6rem;    /* Much more section padding */
-    padding-bottom: 6rem;
-    margin-bottom: 4rem;
-  }
-  
-  /* Navigation with generous spacing */
-  nav {
-    padding: 2rem;
-  }
-  
-  nav ul {
-    margin: 0;
-  }
-  
-  nav li {
-    margin-right: 2rem;
-    margin-bottom: 0;
-  }
-  
-  /* Tables with generous spacing */
-  table {
-    margin-bottom: 3rem;
-  }
-  
-  th, td {
-    padding: 1.5rem; /* Much more generous cell padding */
-  }
-  
-  /* Images with generous spacing */
-  img {
-    margin-bottom: 2rem;
-    margin-top: 2rem;
-  }
-  
-  /* Dividers with generous spacing */
-  hr {
-    margin-top: 4rem;
-    margin-bottom: 4rem;
-  }
-  
-  /* Code blocks with generous spacing */
-  pre, code {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-  }
-  
-  /* Links with breathing room */
-  a {
-    margin: 0 0.25rem;
-  }
-  
-  /* Blockquotes with generous spacing */
-  blockquote {
-    margin: 3rem 0;
-    padding: 2rem;
-    border-left: 4px solid var(--primary);
+
+  h1,h2,h3,h4 { letter-spacing: -0.01em; } /* headings tighter */
+  strong, b    { letter-spacing: 0; }
+
+  /* make prose blocks elegant for announcements/markdown */
+  .prose {
+    @apply leading-relaxed;
   }
 }
 
 @layer components {
-  /* Enhanced Card Styles */
-  .card-gradient {
-    background: linear-gradient(to bottom right, hsl(var(--card)), hsl(var(--card)), hsl(var(--muted) / 0.3));
-    box-shadow: var(--shadow-lg), inset 0 1px 0 0 rgb(255 255 255 / 0.1);
+  /* universal card */
+  .card {
+    @apply bg-card rounded-xl shadow-soft ring-1 ring-zinc-200/70 overflow-hidden;
   }
-  
-  .card-glass {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: var(--glass-backdrop);
-    -webkit-backdrop-filter: var(--glass-backdrop);
+  .card-body {
+    padding: var(--space-5);
   }
-  
-  /* Gradient Text */
-  .text-gradient-primary {
-    background: linear-gradient(to right, #2563eb, #9333ea, #ec4899);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-  
-  .text-gradient-success {
-    background: linear-gradient(to right, #10b981, #059669);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-  
-  /* Enhanced Buttons */
-  .btn-gradient {
-    background: linear-gradient(to right, #2563eb, #9333ea);
-    color: white;
-    box-shadow: var(--shadow-lg);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .btn-gradient:hover {
-    background: linear-gradient(to right, #1d4ed8, #7c3aed);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
-  }
-  
-  /* Animated Borders */
-  .border-gradient {
-    position: relative;
-    background: linear-gradient(var(--bg), var(--bg)) padding-box,
-                linear-gradient(135deg, #667eea, #764ba2) border-box;
-    border: 2px solid transparent;
-  }
-  
-  /* Smooth Animations */
-  .animate-fade-in {
-    animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .animate-scale-in {
-    animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  /* Hover Effects */
-  .hover-lift {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-  }
-  
-  /* Focus Styles */
-  .focus-glow:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--ring), 0 0 20px rgb(var(--ring) / 0.3);
+
+  /* button primitives */
+  .btn { @apply inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition active:scale-[0.99]; }
+  .btn-primary { @apply btn bg-indigo-600 text-white ring-1 ring-indigo-600/20 hover:bg-indigo-500 focus:ring-indigo-500; }
+  .btn-secondary { @apply btn bg-white text-zinc-900 ring-1 ring-zinc-200 hover:bg-zinc-50; }
+  .btn-ghost { @apply btn bg-transparent text-zinc-700 hover:bg-zinc-100; }
+
+  /* section spacing helpers */
+  .section   { padding-block: var(--space-8); }
+  .section-lg{ padding-block: var(--space-10); }
+
+  /* grid rhythm */
+  .grid-rhythm { gap: var(--space-6); }
+  @media (min-width: 1024px) { .grid-rhythm { gap: var(--space-8); } }
+
+  /* list rhythm (vertical stacks) */
+  .stack > * + * { margin-top: var(--space-4); }
+
+  /* clamp long text inside cards */
+  .clamp-1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .clamp-2 {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; min-width: 0;
   }
 }
 
-@layer utilities {
-  /* Density modes */
-  :root[data-density="compact"] {
-    --rhythm: 0.75;
-    --radius: 10px;
-    --lh: 1.15;
-  }
-  :root[data-density="comfy"] {
-    --rhythm: 1.15;
-    --radius: 18px;
-    --lh: 1.35;
-  }
-
-  .rhythm-p { padding: var(--space); }
-  .rhythm-gap { gap: calc(var(--space) * 1.2); }
-  .rhythm-card { border-radius: var(--radius); line-height: var(--lh); }
-
-  /* Motion preference */
-  @media (prefers-reduced-motion: reduce) {
-    .rive-anim { display: none; }
-  }
-  /* GENEROUS SPACING UTILITIES - Lots of breathing room! */
-  
-  /* Extra Large Spacing - Vertical */
-  .space-y-16 > * + * { margin-top: 4rem; }    /* 64px */
-  .space-y-20 > * + * { margin-top: 5rem; }    /* 80px */
-  .space-y-24 > * + * { margin-top: 6rem; }    /* 96px */
-  .space-y-28 > * + * { margin-top: 7rem; }    /* 112px */
-  .space-y-32 > * + * { margin-top: 8rem; }    /* 128px */
-  .space-y-36 > * + * { margin-top: 9rem; }    /* 144px */
-  .space-y-40 > * + * { margin-top: 10rem; }   /* 160px */
-  .space-y-48 > * + * { margin-top: 12rem; }   /* 192px */
-  .space-y-56 > * + * { margin-top: 14rem; }   /* 224px */
-  .space-y-64 > * + * { margin-top: 16rem; }   /* 256px */
-  .space-y-72 > * + * { margin-top: 18rem; }   /* 288px */
-  .space-y-80 > * + * { margin-top: 20rem; }   /* 320px */
-  
-  /* Extra Large Spacing - Horizontal */
-  .space-x-16 > * + * { margin-left: 4rem; }   /* 64px */
-  .space-x-20 > * + * { margin-left: 5rem; }   /* 80px */
-  .space-x-24 > * + * { margin-left: 6rem; }   /* 96px */
-  .space-x-28 > * + * { margin-left: 7rem; }   /* 112px */
-  .space-x-32 > * + * { margin-left: 8rem; }   /* 128px */
-  .space-x-36 > * + * { margin-left: 9rem; }   /* 144px */
-  .space-x-40 > * + * { margin-left: 10rem; }  /* 160px */
-  
-  /* Generous Padding Utilities */
-  .p-16 { padding: 4rem; }         /* 64px */
-  .p-20 { padding: 5rem; }         /* 80px */
-  .p-24 { padding: 6rem; }         /* 96px */
-  .p-28 { padding: 7rem; }         /* 112px */
-  .p-32 { padding: 8rem; }         /* 128px */
-  .p-40 { padding: 10rem; }        /* 160px */
-  .p-48 { padding: 12rem; }        /* 192px */
-  .p-56 { padding: 14rem; }        /* 224px */
-  .p-64 { padding: 16rem; }        /* 256px */
-  
-  /* Generous Vertical Padding */
-  .py-16 { padding-top: 4rem; padding-bottom: 4rem; }     /* 64px */
-  .py-20 { padding-top: 5rem; padding-bottom: 5rem; }     /* 80px */
-  .py-24 { padding-top: 6rem; padding-bottom: 6rem; }     /* 96px */
-  .py-28 { padding-top: 7rem; padding-bottom: 7rem; }     /* 112px */
-  .py-32 { padding-top: 8rem; padding-bottom: 8rem; }     /* 128px */
-  .py-40 { padding-top: 10rem; padding-bottom: 10rem; }   /* 160px */
-  .py-48 { padding-top: 12rem; padding-bottom: 12rem; }   /* 192px */
-  .py-56 { padding-top: 14rem; padding-bottom: 14rem; }   /* 224px */
-  .py-64 { padding-top: 16rem; padding-bottom: 16rem; }   /* 256px */
-  
-  /* Generous Horizontal Padding */
-  .px-16 { padding-left: 4rem; padding-right: 4rem; }     /* 64px */
-  .px-20 { padding-left: 5rem; padding-right: 5rem; }     /* 80px */
-  .px-24 { padding-left: 6rem; padding-right: 6rem; }     /* 96px */
-  .px-28 { padding-left: 7rem; padding-right: 7rem; }     /* 112px */
-  .px-32 { padding-left: 8rem; padding-right: 8rem; }     /* 128px */
-  .px-40 { padding-left: 10rem; padding-right: 10rem; }   /* 160px */
-  
-  /* Generous Margin Utilities */
-  .m-16 { margin: 4rem; }          /* 64px */
-  .m-20 { margin: 5rem; }          /* 80px */
-  .m-24 { margin: 6rem; }          /* 96px */
-  .m-32 { margin: 8rem; }          /* 128px */
-  .m-40 { margin: 10rem; }         /* 160px */
-  .m-48 { margin: 12rem; }         /* 192px */
-  
-  /* Generous Vertical Margins */
-  .my-16 { margin-top: 4rem; margin-bottom: 4rem; }       /* 64px */
-  .my-20 { margin-top: 5rem; margin-bottom: 5rem; }       /* 80px */
-  .my-24 { margin-top: 6rem; margin-bottom: 6rem; }       /* 96px */
-  .my-28 { margin-top: 7rem; margin-bottom: 7rem; }       /* 112px */
-  .my-32 { margin-top: 8rem; margin-bottom: 8rem; }       /* 128px */
-  .my-40 { margin-top: 10rem; margin-bottom: 10rem; }     /* 160px */
-  .my-48 { margin-top: 12rem; margin-bottom: 12rem; }     /* 192px */
-  .my-56 { margin-top: 14rem; margin-bottom: 14rem; }     /* 224px */
-  .my-64 { margin-top: 16rem; margin-bottom: 16rem; }     /* 256px */
-  
-  /* Generous Top Margins */
-  .mt-16 { margin-top: 4rem; }     /* 64px */
-  .mt-20 { margin-top: 5rem; }     /* 80px */
-  .mt-24 { margin-top: 6rem; }     /* 96px */
-  .mt-28 { margin-top: 7rem; }     /* 112px */
-  .mt-32 { margin-top: 8rem; }     /* 128px */
-  .mt-40 { margin-top: 10rem; }    /* 160px */
-  .mt-48 { margin-top: 12rem; }    /* 192px */
-  .mt-56 { margin-top: 14rem; }    /* 224px */
-  .mt-64 { margin-top: 16rem; }    /* 256px */
-  
-  /* Generous Bottom Margins */
-  .mb-16 { margin-bottom: 4rem; }  /* 64px */
-  .mb-20 { margin-bottom: 5rem; }  /* 80px */
-  .mb-24 { margin-bottom: 6rem; }  /* 96px */
-  .mb-28 { margin-bottom: 7rem; }  /* 112px */
-  .mb-32 { margin-bottom: 8rem; }  /* 128px */
-  .mb-40 { margin-bottom: 10rem; } /* 160px */
-  .mb-48 { margin-bottom: 12rem; } /* 192px */
-  .mb-56 { margin-bottom: 14rem; } /* 224px */
-  .mb-64 { margin-bottom: 16rem; } /* 256px */
-  
-  /* Gap Utilities for Flexbox/Grid */
-  .gap-16 { gap: 4rem; }           /* 64px */
-  .gap-20 { gap: 5rem; }           /* 80px */
-  .gap-24 { gap: 6rem; }           /* 96px */
-  .gap-28 { gap: 7rem; }           /* 112px */
-  .gap-32 { gap: 8rem; }           /* 128px */
-  .gap-40 { gap: 10rem; }          /* 160px */
-  .gap-48 { gap: 12rem; }          /* 192px */
-  
-  /* Generous Section Spacing */
-  .section-spacing {
-    padding-top: 8rem;    /* 128px */
-    padding-bottom: 8rem; /* 128px */
-  }
-  
-  .section-spacing-lg {
-    padding-top: 12rem;   /* 192px */
-    padding-bottom: 12rem; /* 192px */
-  }
-  
-  .section-spacing-xl {
-    padding-top: 16rem;   /* 256px */
-    padding-bottom: 16rem; /* 256px */
-  }
-  
-  /* Generous Container Spacing */
-  .container-spacing {
-    padding-left: 4rem;   /* 64px */
-    padding-right: 4rem;  /* 64px */
-  }
-  
-  .container-spacing-lg {
-    padding-left: 6rem;   /* 96px */
-    padding-right: 6rem;  /* 96px */
-  }
-  
-  /* Card Spacing */
-  .card-spacing {
-    padding: 3rem;        /* 48px */
-  }
-  
-  .card-spacing-lg {
-    padding: 4rem;        /* 64px */
-  }
-  
-  .card-spacing-xl {
-    padding: 6rem;        /* 96px */
-  }
-  
-  /* Background Patterns */
-  .bg-dot-pattern {
-    background-image: radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-  
-  .bg-grid-pattern {
-    background-image: 
-      linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  /* River intensity helpers */
-  .river-subtle .animate-river { opacity: 0.4; }
-  .river-medium .animate-river { opacity: 0.6; }
-  .river-strong .animate-river { opacity: 0.9; }
-}
-
-/* Keyframe Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--muted);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--foreground);
-}
-
-/* Entropic flowing gradient background */
-.animate-river {
-  --river-opacity-primary: 0.35;
-  --river-opacity-accent: 0.35;
-  --river-opacity-warning: 0.25;
-  --river-opacity-success: 0.25;
-  --river-blur: 120px;
-  --river-speed: 40s;
-  background: radial-gradient(circle at 20% 20%, hsl(var(--primary) / var(--river-opacity-primary)), transparent 60%),
-              radial-gradient(circle at 80% 80%, hsl(var(--accent) / var(--river-opacity-accent)), transparent 60%),
-              radial-gradient(circle at 80% 20%, hsl(var(--warning) / var(--river-opacity-warning)), transparent 60%),
-              radial-gradient(circle at 20% 80%, hsl(var(--success) / var(--river-opacity-success)), transparent 60%);
-  background-size: 200% 200%;
-  animation: riverFlow var(--river-speed) ease-in-out infinite alternate;
-  filter: blur(var(--river-blur));
-}
-
-/* River intensity utilities */
-.river-subtle .animate-river { --river-opacity-primary: 0.2; --river-opacity-accent: 0.2; --river-opacity-warning: 0.15; --river-opacity-success: 0.15; --river-blur: 140px; }
-.river-medium .animate-river { --river-opacity-primary: 0.35; --river-opacity-accent: 0.35; --river-opacity-warning: 0.25; --river-opacity-success: 0.25; --river-blur: 120px; }
-.river-strong .animate-river { --river-opacity-primary: 0.5; --river-opacity-accent: 0.5; --river-opacity-warning: 0.4; --river-opacity-success: 0.4; --river-blur: 100px; }
-.river-off .animate-river { --river-opacity-primary: 0; --river-opacity-accent: 0; --river-opacity-warning: 0; --river-opacity-success: 0; --river-blur: 0; }
-
-@keyframes riverFlow {
-  0% {
-    transform: translateX(-10%) translateY(-10%) scale(1);
-  }
-  50% {
-    transform: translateX(10%) translateY(10%) scale(1.2);
-  }
-  100% {
-    transform: translateX(-10%) translateY(-10%) scale(1);
-  }
+/* prevent ugly overflow in tables/grids */
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

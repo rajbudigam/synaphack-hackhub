@@ -1,49 +1,38 @@
-import "./globals.css";
-import "./tw.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Sidebar } from "@/components/shell/sidebar";
-import { Topbar } from "@/components/shell/topbar";
-import { CommandMenu } from "@/components/shell/command-menu";
-import { FlowBackground } from "@/components/FlowBackground";
-import Providers from "./Providers";
+import "./globals.css"
+import type { Metadata } from "next"
+import Link from "next/link"
 
-export const metadata = { 
-  title: "HackHub - Next-Gen Hackathon Platform", 
-  description: "AI-powered hackathon platform with Web3 integration, real-time collaboration, and advanced analytics" 
-};
+export const metadata: Metadata = {
+  title: "HackHub",
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-  <body className="antialiased river-medium">
-        <ClerkProvider>
-          <ThemeProvider>
-            <Providers>
-            <div className="min-h-screen bg-background">
-              <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] min-h-screen">
-                {/* Enhanced Sidebar */}
-                <aside className="hidden md:block border-r border-gray-200/50 dark:border-gray-800/50 bg-card/30 backdrop-blur-xl shadow-xl">
-                  <Sidebar />
-                </aside>
-                
-                {/* Main Content Area */}
-                <main className="flex min-h-screen flex-col overflow-hidden">
-                  {/* Enhanced Topbar */}
-                  <Topbar />
+    <html lang="en">
+      <body>
+        {/* Top bar stays minimal; avoid tight spacing */}
+        <header className="border-b border-zinc-200/70 bg-white">
+          <div className="container flex items-center justify-between py-3 md:py-4">
+            <div className="text-sm font-semibold tracking-tightest">HackHub</div>
+            <nav className="flex items-center gap-2 md:gap-3">
+              {/* keep buttons consistent */}
+              <Link className="btn-ghost" href="/dashboard">Dashboard</Link>
+              <Link className="btn-secondary" href="/events">Events</Link>
+            </nav>
+          </div>
+        </header>
 
-                  {/* Dynamic flowing background */}
-                          <FlowBackground intensity="subtle">
-                    {children}
-                  </FlowBackground>
-                </main>
-              </div>
-              <CommandMenu />
-            </div>
-            </Providers>
-          </ThemeProvider>
-        </ClerkProvider>
+        {/* page content with consistent breathing room */}
+        <main className="container section">
+          {children}
+        </main>
+
+        <footer className="mt-16 border-t border-zinc-200/70 bg-white">
+          <div className="container py-8 text-xs text-zinc-500">
+            © {new Date().getFullYear()} HackHub
+          </div>
+        </footer>
       </body>
     </html>
-  );
+  )
 }
