@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Providers from "./Providers";
+import BackgroundFX from "@/components/visuals/BackgroundFX";
 
 export const metadata: Metadata = {
   title: "HackHub - Run extraordinary hackathons",
@@ -16,10 +17,13 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className="antialiased">
-          <Providers>
-            {children}
-          </Providers>
+        <body className="antialiased relative">
+          <BackgroundFX />
+          <div className="relative z-10">
+            <Providers>
+              {children}
+            </Providers>
+          </div>
         </body>
       </html>
     </ClerkProvider>

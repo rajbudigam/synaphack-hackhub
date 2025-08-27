@@ -10,44 +10,48 @@ import { PageContainer } from "@/components/PageContainer";
 
 async function getPlagiarismReports() {
   try {
-    // Mock data for plagiarism reports
-    const mockReports = [
-      {
-        id: "1",
-        fileName: "main.py",
-        submissionId: "sub_123",
-        teamName: "Code Warriors",
-        similarityScore: 15.5,
-        status: "clean",
-        scanDate: new Date("2025-08-25T10:30:00Z"),
-        matchedSources: 2,
-        details: "Low similarity detected with common libraries and documentation."
+    const reports = await prisma.plagiarismReport.findMany({
+      include: { 
+        matches: true,
+        submission: {
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            team: { select: { name: true } }
+          }
+        }
       },
-      {
-        id: "2", 
-        fileName: "algorithm.js",
-        submissionId: "sub_124",
-        teamName: "Tech Innovators",
-        similarityScore: 85.2,
-        status: "flagged",
-        scanDate: new Date("2025-08-25T14:15:00Z"),
-        matchedSources: 12,
-        details: "High similarity detected with online tutorials and existing repositories."
-      },
-      {
-        id: "3",
-        fileName: "database.sql",
-        submissionId: "sub_125", 
-        teamName: "Data Miners",
-        similarityScore: 45.8,
-        status: "review",
-        scanDate: new Date("2025-08-25T16:45:00Z"),
-        matchedSources: 5,
-        details: "Moderate similarity detected. Manual review recommended."
-      }
-    ];
+      orderBy: { createdAt: 'desc' },
+      take: 20
+    });
 
-    return mockReports;
+    return reports.map(report => {
+      const maxSimilarity = Math.max(
+        report.maxCosine * 100,
+        (1 - report.minHamming / 64) * 100,
+        report.maxJaccard * 100
+      );
+      
+      const highRiskCount = report.matches.filter(m => m.risk === 'high').length;
+      const mediumRiskCount = report.matches.filter(m => m.risk === 'medium').length;
+      
+      let status = 'clean';
+      if (highRiskCount > 0) status = 'flagged';
+      else if (mediumRiskCount > 0) status = 'review';
+      
+      return {
+        id: report.submissionId,
+        fileName: report.submission.title || 'Untitled Submission',
+        submissionId: report.submissionId,
+        teamName: report.submission.team?.name || 'Unknown Team',
+        similarityScore: maxSimilarity,
+        status,
+        scanDate: report.createdAt,
+        matchedSources: report.matches.length,
+        details: report.summary
+      };
+    });
   } catch (error) {
     console.error("Error fetching plagiarism reports:", error);
     return [];
