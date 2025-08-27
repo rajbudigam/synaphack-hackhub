@@ -46,15 +46,17 @@ export async function POST(request: NextRequest) {
       name,
       description,
       eventId,
-      skills,
-      lookingFor,
-      maxMembers
+      avatar,
+      repositoryUrl,
+      videoUrl,
+      presentationUrl,
+      websiteUrl
     } = body;
 
     // Validate required fields
-    if (!name || !description) {
+    if (!name || !description || !eventId) {
       return NextResponse.json(
-        { error: 'Missing required fields: name, description' },
+        { error: 'Missing required fields: name, description, eventId' },
         { status: 400 }
       );
     }
@@ -64,10 +66,12 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         description,
-        eventId: eventId || null,
-        skills: skills || [],
-        lookingFor: lookingFor || [],
-        maxMembers: maxMembers || 4,
+        eventId,
+        avatar: avatar || null,
+        repositoryUrl: repositoryUrl || null,
+        videoUrl: videoUrl || null,
+        presentationUrl: presentationUrl || null,
+        websiteUrl: websiteUrl || null,
         status: 'active'
       },
       include: {

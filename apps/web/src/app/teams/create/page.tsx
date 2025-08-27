@@ -20,9 +20,11 @@ export default function CreateTeamPage() {
     name: "",
     description: "",
     eventId: "",
-    skills: "",
-    lookingFor: "",
-    maxMembers: 4
+    avatar: "",
+    repositoryUrl: "",
+    videoUrl: "",
+    presentationUrl: "",
+    websiteUrl: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,11 +35,7 @@ export default function CreateTeamPage() {
       const response = await fetch('/api/teams', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          skills: formData.skills.split(',').map(skill => skill.trim()).filter(Boolean),
-          lookingFor: formData.lookingFor.split(',').map(skill => skill.trim()).filter(Boolean)
-        })
+        body: JSON.stringify(formData)
       });
 
       if (response.ok) {
@@ -116,7 +114,7 @@ export default function CreateTeamPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="eventId">Target Event (Optional)</Label>
+                  <Label htmlFor="eventId">Target Event *</Label>
                   <Select value={formData.eventId} onValueChange={(value) => handleInputChange('eventId', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select an event" />
@@ -130,60 +128,67 @@ export default function CreateTeamPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="maxMembers">Max Team Size</Label>
-                  <Select 
-                    value={formData.maxMembers.toString()} 
-                    onValueChange={(value) => handleInputChange('maxMembers', parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2">2 members</SelectItem>
-                      <SelectItem value="3">3 members</SelectItem>
-                      <SelectItem value="4">4 members</SelectItem>
-                      <SelectItem value="5">5 members</SelectItem>
-                      <SelectItem value="6">6 members</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="avatar">Team Avatar URL (Optional)</Label>
+                  <Input
+                    id="avatar"
+                    value={formData.avatar}
+                    onChange={(e) => handleInputChange('avatar', e.target.value)}
+                    placeholder="https://example.com/avatar.png"
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Skills & Expertise */}
+          {/* Project Links */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Code className="h-5 w-5" />
-                Skills & Expertise
+                Project Links
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="skills">Current Team Skills (comma-separated)</Label>
+                <Label htmlFor="repositoryUrl">Repository URL (Optional)</Label>
                 <Input
-                  id="skills"
-                  value={formData.skills}
-                  onChange={(e) => handleInputChange('skills', e.target.value)}
-                  placeholder="e.g., React, Python, UI/UX Design, Machine Learning, DevOps"
+                  id="repositoryUrl"
+                  value={formData.repositoryUrl}
+                  onChange={(e) => handleInputChange('repositoryUrl', e.target.value)}
+                  placeholder="https://github.com/team/project"
                 />
-                <p className="text-sm text-muted-foreground">
-                  List the skills and technologies your team already has
-                </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lookingFor">Looking For (comma-separated)</Label>
+                <Label htmlFor="websiteUrl">Website URL (Optional)</Label>
                 <Input
-                  id="lookingFor"
-                  value={formData.lookingFor}
-                  onChange={(e) => handleInputChange('lookingFor', e.target.value)}
-                  placeholder="e.g., Backend Developer, Data Scientist, Mobile Developer, Designer"
+                  id="websiteUrl"
+                  value={formData.websiteUrl}
+                  onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
+                  placeholder="https://yourproject.com"
                 />
-                <p className="text-sm text-muted-foreground">
-                  What skills or roles are you looking to add to your team?
-                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="videoUrl">Demo Video URL (Optional)</Label>
+                  <Input
+                    id="videoUrl"
+                    value={formData.videoUrl}
+                    onChange={(e) => handleInputChange('videoUrl', e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="presentationUrl">Presentation URL (Optional)</Label>
+                  <Input
+                    id="presentationUrl"
+                    value={formData.presentationUrl}
+                    onChange={(e) => handleInputChange('presentationUrl', e.target.value)}
+                    placeholder="https://docs.google.com/presentation/..."
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
