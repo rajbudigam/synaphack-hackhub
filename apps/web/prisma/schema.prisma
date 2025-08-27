@@ -1,0 +1,485 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String?  @unique
+  name      String?
+  imageUrl  String?
+  avatar    String?
+  bio       String?
+  github    String?
+  linkedin  String?
+  twitter   String?
+  website   String?
+  skills    String? // JSON array of skills
+  role      String   @default("participant") // participant, organizer, judge, mentor, admin, sponsor_manager
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teams         TeamMember[]
+  scores        Score[]
+  audit         AuditLog[]
+  registrations Registration[]
+  organizedEvents Event[] @relation("EventOrganizer")
+  judgedEvents    Event[] @relation("EventJudge")
+  mentorEvents    Event[] @relation("EventMentor")
+  announcements   Announcement[]
+  certificates    Certificate[]
+  poaps           POAP[]
+  
+  // Phase 2 additions
+  judgeAssignments JudgeAssignment[]
+  issuedCertificates IssuedCertificate[]
+}
+
+model Event {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  name             String
+  description      String?
+  longDescription  String? // Detailed event description
+  mode             String   // online, offline, hybrid
+  startsAt         DateTime
+  endsAt           DateTime
+  registrationEnds DateTime?
+  maxTeamSize      Int      @default(4)
+  minTeamSize      Int      @default(1)
+  maxTeams         Int?
+  prizeMoney       String?
+  rules            String? // JSON formatted rules
+  schedule         String? // JSON formatted schedule
+  mentorsList      String? // JSON array of mentors
+  tags             String? // JSON array of tags
+  coverImage       String?
+  logoImage        String?
+  status           String   @default("draft") // draft, published, ongoing, completed
+  featured         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  // Relations
+  tracks          Track[]
+  rounds          Round[]
+  teams           Team[]
+  registrations   Registration[]
+  submissions     Submission[]
+  announcements   Announcement[]
+  certificates    Certificate[]
+  analytics       EventAnalytics[]
+  poaps           POAP[]
+  
+  // Event organizers/judges/mentors
+  organizers      User[] @relation("EventOrganizer")
+  judges          User[] @relation("EventJudge")
+  mentors         User[] @relation("EventMentor")
+  
+  // Phase 2 additions
+  judgeAssignments JudgeAssignment[]
+  certificateTemplates CertificateTemplate[]
+  issuedCertificates IssuedCertificate[]
+  sponsors        Sponsor[]
+}
+
+model Track {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  color       String? // hex color for UI
+  prizes      String? // JSON formatted prizes
+  event       Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String
+  
+  submissions Submission[]
+  judgeAssignments JudgeAssignment[]
+}
+
+model Round {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  order       Int
+  startsAt    DateTime
+  endsAt      DateTime
+  maxScore    Int      @default(100)
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId     String
+
+  submissions Submission[]
+  rubric      Rubric?
+  scores      Score[]
+}
+
+model Team {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  avatar        String?
+  repositoryUrl String?
+  videoUrl      String?
+  presentationUrl String?
+  websiteUrl    String?
+  status        String   @default("active") // active, disbanded, banned
+  createdAt     DateTime @default(now())
+  
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId       String
+  
+  members       TeamMember[]
+  submissions   Submission[]
+  registrations Registration[]
+  invitations   TeamInvitation[]
+  
+  @@unique([eventId, name])
+}
+
+model TeamMember {
+  id       String @id @default(cuid())
+  role     String // owner, member
+  joinedAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  @@unique([userId, teamId])
+}
+
+model TeamInvitation {
+  id        String   @id @default(cuid())
+  email     String
+  status    String   @default("pending") // pending, accepted, rejected, expired
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId    String
+  
+  @@unique([teamId, email])
+}
+
+model Registration {
+  id        String   @id @default(cuid())
+  status    String   @default("pending") // pending, approved, rejected
+  createdAt DateTime @default(now())
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String?
+
+  team   Team?   @relation(fields: [teamId], references: [id])
+  teamId String?
+}
+
+model Submission {
+  id            String   @id @default(cuid())
+  title         String
+  description   String?
+  content       String?  // text content for plagiarism checking
+  code          String?  // code content for plagiarism checking
+  repoUrl       String?
+  liveUrl       String?
+  videoUrl      String?
+  presentationUrl String?
+  techStack     String? // JSON array
+  features      String? // JSON array
+  challenges    String?
+  accomplishments String?
+  learnings     String?
+  nextSteps     String?
+  status        String   @default("draft") // draft, submitted, under_review, reviewed
+  submittedAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId String
+
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  roundId String?
+  
+  track   Track?  @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  trackId String?
+
+  scores            Score[]
+  plagiarismChecks  PlagiarismCheck[]
+  plagiarismReport  PlagiarismReport?
+  
+  @@unique([eventId, teamId, roundId])
+}
+
+model Rubric {
+  id        String      @id @default(cuid())
+  name      String
+  description String?
+  criteria  Criterion[]
+
+  round   Round?  @relation(fields: [roundId], references: [id])
+  roundId String? @unique
+}
+
+model Criterion {
+  id          String @id @default(cuid())
+  name        String
+  description String?
+  weight      Float  @default(1.0)
+  maxScore    Int    @default(10)
+  order       Int    @default(0)
+
+  rubric   Rubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  rubricId String
+}
+
+model Score {
+  id         String  @id @default(cuid())
+  value      Int
+  maxValue   Int     @default(10)
+  comment    String?
+  criterion  String? // criterion name
+  createdAt  DateTime @default(now())
+
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String
+
+  judge   User   @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  judgeId String
+
+  round   Round?  @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  roundId String?
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  type      String   @default("general") // general, urgent, update, reminder
+  priority  String   @default("normal") // low, normal, high, urgent
+  channels  String? // JSON array: email, push, in-app
+  scheduled Boolean  @default(false)
+  publishAt DateTime?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  author   User   @relation(fields: [authorId], references: [id])
+  authorId String
+}
+
+model Certificate {
+  id          String   @id @default(cuid())
+  type        String   // participation, winner, runner_up, special_mention
+  title       String
+  description String?
+  imageUrl    String?
+  pdfUrl      String?
+  verificationCode String @unique
+  issued      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  issuedAt    DateTime?
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  
+  @@unique([eventId, userId, type])
+}
+
+model POAP {
+  id          String   @id @default(cuid())
+  tokenId     String   @unique
+  contractAddress String
+  title       String
+  description String?
+  imageUrl    String
+  claimed     Boolean  @default(false)
+  claimedAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  
+  @@unique([eventId, userId])
+}
+
+model PlagiarismCheck {
+  id          String   @id @default(cuid())
+  similarity  Float    // percentage similarity
+  sources     String   // JSON array of similar sources
+  status      String   @default("pending") // pending, completed, failed
+  report      String?  // detailed report
+  createdAt   DateTime @default(now())
+
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId String
+}
+
+model EventAnalytics {
+  id            String   @id @default(cuid())
+  date          DateTime @default(now())
+  registrations Int      @default(0)
+  teams         Int      @default(0)
+  submissions   Int      @default(0)
+  pageViews     Int      @default(0)
+  uniqueVisitors Int     @default(0)
+  
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId String
+  
+  @@unique([eventId, date])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String
+  changes   String? // JSON of changes
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId String?
+}
+
+// =================== PHASE 2 MODELS ===================
+
+model JudgeAssignment {
+  id        String   @id @default(cuid())
+  eventId   String
+  judgeId   String
+  trackId   String? // Optional: assign to specific track
+  maxSubmissions Int? // Optional: limit number of submissions per judge
+  createdAt DateTime @default(now())
+
+  event     Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  judge     User  @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  track     Track? @relation(fields: [trackId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, judgeId, trackId])
+}
+
+model Sponsor {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  website     String?
+  logoUrl     String?
+  description String?
+  tier        String   @default("bronze") // bronze, silver, gold, platinum
+  amount      Int?     // Sponsorship amount in cents
+  contact     String?  // Contact email
+  status      String   @default("pending") // pending, confirmed, featured
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model CertificateTemplate {
+  id          String   @id @default(cuid())
+  eventId     String
+  name        String
+  type        String   // participation, winner, runner_up, judge, mentor, organizer
+  title       String   // "Certificate of Excellence"
+  subtitle    String?  // "in recognition of outstanding achievement"
+  body        String   // Template with {{name}}, {{event}}, {{date}}, {{achievement}}
+  footer      String?  // Additional footer text
+  signature   String?  // Signatory name
+  layout      String   @default("modern") // modern, classic, minimal
+  primaryColor String  @default("#2563eb")
+  secondaryColor String @default("#64748b")
+  fontFamily  String   @default("Inter")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  issued      IssuedCertificate[]
+}
+
+model IssuedCertificate {
+  id          String   @id @default(cuid())
+  serial      String   @unique
+  eventId     String
+  templateId  String
+  userId      String
+  recipientName String // Cached name at time of issuance
+  achievement String?  // Specific achievement (1st Place, Top 10, etc.)
+  metadata    String?  // JSON for additional data
+  pdfUrl      String?  // Generated PDF URL
+  issuedAt    DateTime @default(now())
+  emailSent   Boolean  @default(false)
+  emailSentAt DateTime?
+
+  event       Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  template    CertificateTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =================== PHASE 3 MODELS ===================
+
+model PlagiarismReport {
+  id             String   @id @default(cuid())
+  submissionId   String   @unique
+  createdAt      DateTime @default(now())
+  summary        String
+  maxCosine      Float
+  minHamming     Int
+  maxJaccard     Float
+  matches        PlagiarismMatch[]
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+}
+
+model PlagiarismMatch {
+  id               String   @id @default(cuid())
+  reportId         String
+  otherSubmissionId String
+  cosine           Float
+  hamming          Int
+  jaccard          Float
+  overlapPercent   Float
+  snippetA         String
+  snippetB         String
+  risk             String   // "low" | "medium" | "high"
+  report           PlagiarismReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+
+  @@index([reportId])
+  @@index([otherSubmissionId])
+}
+
+model PoAPMint {
+  id          String   @id @default(cuid())
+  eventId     String
+  userAddress String
+  tokenURI    String
+  txHash      String
+  createdAt   DateTime @default(now())
+  
+  @@index([eventId])
+  @@index([userAddress])
+}
