@@ -1,9 +1,10 @@
-// Enhanced seed.mjs for comprehensive SynapHack 3.0 data
+// Pitch-ready seed data for HackHub Platform
 import pkg from "@prisma/client";
 const { PrismaClient } = pkg;
 
 const prisma = new PrismaClient();
 const days = (n) => new Date(Date.now() + n * 86_400_000);
+const past = (n) => new Date(Date.now() - n * 86_400_000);
 
 // --- Enhanced helper functions ---
 async function ensureUser({ email, name, role = "participant", skills = [], ...userData }) {
@@ -253,82 +254,87 @@ async function main() {
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face"
   });
 
-  // Create SynapHack 3.0 - The main event
+  // Create SynapHack 2025 - The main event (happening soon)
   const e1 = await ensureEvent({
-    slug: "synaphack-3",
-    name: "SynapHack 3.0",
-    description: "The ultimate innovation challenge for the next generation of tech leaders",
-    longDescription: `Join us for SynapHack 3.0, where creativity meets technology in the most exciting hackathon of the year! 
+    slug: "synaphack-2025",
+    name: "SynapHack 2025",
+    description: "The premier global hackathon connecting innovators worldwide",
+    longDescription: `SynapHack 2025 brings together the brightest minds to solve tomorrow's challenges today. 
     
-Build groundbreaking solutions that address real-world challenges across AI, FinTech, Healthcare, and Sustainability. With over $50,000 in prizes and mentorship from industry leaders, this is your chance to make an impact.
+This year's focus areas include AI Innovation, Sustainable Technology, HealthTech Solutions, and Web3 Applications. 
 
-What makes SynapHack special:
-• 48-hour intensive hackathon with multiple tracks
-• Expert mentors from top tech companies  
-• Real-time judging and feedback
-• Networking with industry professionals
-• Guaranteed interviews for top performers`,
+🏆 Prize Pool: $75,000
+🌍 Global Participation: Online & Regional Hubs
+⏰ Duration: 48 Hours of Pure Innovation
+🎯 Tracks: 4 Specialized Categories
+
+Join 2,000+ participants from 50+ countries in building solutions that matter. Expert mentors from leading tech companies will guide teams throughout the event.`,
     mode: "hybrid",
-    startsAt: days(25),
-    endsAt: days(27),
-    registrationEnds: days(20),
+    startsAt: days(5),
+    endsAt: days(7),
+    registrationEnds: days(2),
     maxTeamSize: 4,
     minTeamSize: 1,
-    maxTeams: 100,
-    prizeMoney: "$50,000 total prize pool",
+    maxTeams: 500,
+    prizeMoney: "$75,000 total prize pool",
     rules: [
-      "Teams can have 1-4 members",
-      "All code must be written during the event",
-      "Use of external APIs and libraries is allowed",
-      "Teams must present their solution to judges",
-      "Final submission includes code, demo, and presentation"
+      "Teams must have 1-4 members",
+      "Original code written during event period",
+      "Open source libraries and APIs allowed",
+      "Final demo required for all submissions",
+      "Code repository must be public"
     ],
     schedule: [
-      { time: "2024-09-12 09:00", title: "Opening Ceremony", description: "Welcome and introduction" },
-      { time: "2024-09-12 10:00", title: "Hacking Begins", description: "Start building your solutions" },
-      { time: "2024-09-12 12:00", title: "Lunch & Networking", description: "Connect with mentors and teams" },
-      { time: "2024-09-12 18:00", title: "Dinner Break", description: "Fuel up for the night ahead" },
-      { time: "2024-09-13 08:00", title: "Breakfast", description: "Start day 2 strong" },
-      { time: "2024-09-13 12:00", title: "Lunch", description: "Midday refuel" },
-      { time: "2024-09-13 16:00", title: "Submission Deadline", description: "Final submissions due" },
-      { time: "2024-09-13 17:00", title: "Presentations", description: "Team presentations to judges" },
-      { time: "2024-09-13 20:00", title: "Awards Ceremony", description: "Winners announced" }
+      { time: "2025-09-02 10:00", title: "Opening Keynote", description: "Welcome & challenge introduction" },
+      { time: "2025-09-02 11:00", title: "Team Formation", description: "Find your teammates" },
+      { time: "2025-09-02 12:00", title: "Hacking Begins", description: "Start building!" },
+      { time: "2025-09-02 18:00", title: "Mentor Sessions", description: "1-on-1 guidance available" },
+      { time: "2025-09-03 12:00", title: "Midpoint Check-in", description: "Progress updates" },
+      { time: "2025-09-03 20:00", title: "Submission Deadline", description: "Final uploads due" },
+      { time: "2025-09-04 10:00", title: "Demo Day", description: "Team presentations" },
+      { time: "2025-09-04 16:00", title: "Awards Ceremony", description: "Winners announced" }
     ],
     sponsors: [
-      { name: "TechCorp", logo: "/sponsors/techcorp.png", tier: "Platinum", url: "https://techcorp.com" },
-      { name: "InnovateLabs", logo: "/sponsors/innovate.png", tier: "Gold", url: "https://innovatelabs.com" },
-      { name: "StartupHub", logo: "/sponsors/startup.png", tier: "Silver", url: "https://startuphub.com" }
+      { name: "Microsoft", logo: "/sponsors/microsoft.png", tier: "Platinum", url: "https://microsoft.com" },
+      { name: "Google Cloud", logo: "/sponsors/google.png", tier: "Gold", url: "https://cloud.google.com" },
+      { name: "GitHub", logo: "/sponsors/github.png", tier: "Silver", url: "https://github.com" }
     ],
     mentorsList: [
-      { name: "Sarah Johnson", company: "Google", expertise: "AI/ML", image: "/mentors/sarah.jpg" },
-      { name: "Mike Chen", company: "Microsoft", expertise: "Cloud Architecture", image: "/mentors/mike.jpg" },
-      { name: "Lisa Park", company: "Meta", expertise: "Product Strategy", image: "/mentors/lisa.jpg" }
+      { name: "Sarah Chen", company: "Meta", expertise: "Product Strategy", image: "/mentors/sarah.jpg" },
+      { name: "Alex Kumar", company: "OpenAI", expertise: "AI/ML Engineering", image: "/mentors/alex.jpg" },
+      { name: "Maya Patel", company: "Stripe", expertise: "FinTech", image: "/mentors/maya.jpg" }
     ],
-    tags: ["AI", "FinTech", "Innovation", "Startup", "Technology"],
-    coverImage: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1200&h=600&fit=crop",
-    logoImage: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=200&h=200&fit=crop",
+    tags: ["AI", "Sustainability", "HealthTech", "Web3", "Innovation"],
+    coverImage: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&h=600&fit=crop",
+    logoImage: "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=200&h=200&fit=crop",
     status: "published",
     featured: true
   });
 
   await replaceTracks(e1.id, [
     {
-      name: "AI & Machine Learning",
-      description: "Build intelligent solutions using AI, ML, and data science",
-      color: "#FF6B6B",
-      prizes: { first: "$15,000", second: "$8,000", third: "$3,000" }
+      name: "AI Innovation",
+      description: "Build next-generation AI applications and tools",
+      color: "#6366F1",
+      prizes: { first: "$25,000", second: "$15,000", third: "$8,000" }
     },
     {
-      name: "FinTech Innovation", 
-      description: "Revolutionize financial services with cutting-edge technology",
-      color: "#4ECDC4",
-      prizes: { first: "$12,000", second: "$6,000", third: "$2,000" }
+      name: "Sustainable Technology", 
+      description: "Create solutions for environmental challenges",
+      color: "#10B981",
+      prizes: { first: "$20,000", second: "$12,000", third: "$6,000" }
     },
     {
-      name: "Open Innovation",
-      description: "Create solutions that don't fit traditional categories",
-      color: "#45B7D1",
-      prizes: { first: "$8,000", second: "$4,000", third: "$2,000" }
+      name: "HealthTech Solutions",
+      description: "Innovate in healthcare and medical technology",
+      color: "#EF4444",
+      prizes: { first: "$18,000", second: "$10,000", third: "$5,000" }
+    },
+    {
+      name: "Web3 Applications",
+      description: "Build decentralized applications and blockchain solutions",
+      color: "#8B5CF6",
+      prizes: { first: "$15,000", second: "$8,000", third: "$4,000" }
     }
   ]);
 
@@ -413,42 +419,117 @@ What makes SynapHack special:
 
   const sustainableInnovators = await ensureTeam(e3.id, "Sustainable Innovators", "Building a greener tomorrow", participant1.id);
 
-  // Create comprehensive submissions
+  // Create comprehensive submissions with realistic data
   const tracks = await prisma.track.findMany({ where: { eventId: e1.id } });
-  const aiTrack = tracks.find(t => t.name === "AI & Machine Learning");
+  const aiTrack = tracks.find(t => t.name === "AI Innovation");
+  const sustainableTrack = tracks.find(t => t.name === "Sustainable Technology");
+  const healthTrack = tracks.find(t => t.name === "HealthTech Solutions");
 
   await ensureSubmission({
-    title: "QuantumMind AI Assistant",
-    description: "An AI-powered assistant that helps students learn quantum computing concepts through interactive simulations and personalized learning paths.",
+    title: "EcoTracker AI",
+    description: "AI-powered carbon footprint tracking app that helps individuals and businesses reduce their environmental impact through personalized recommendations and gamified sustainability challenges.",
     status: "submitted",
     eventId: e1.id,
     teamId: quantumTeam.id,
     roundId: e1r1?.id,
-    trackId: aiTrack?.id,
-    repoUrl: "https://github.com/quantum-team/quantummind-ai",
-    liveUrl: "https://quantummind-ai.vercel.app",
-    videoUrl: "https://youtube.com/watch?v=demo123",
-    presentationUrl: "https://slides.com/quantum-team/quantummind",
-    techStack: ["Next.js", "OpenAI API", "Three.js", "Prisma", "TailwindCSS"],
+    trackId: sustainableTrack?.id,
+    repoUrl: "https://github.com/quantum-team/ecotracker-ai",
+    liveUrl: "https://ecotracker-ai.vercel.app",
+    videoUrl: "https://youtu.be/demo-ecotracker",
+    presentationUrl: "https://pitch.com/quantum-team/ecotracker",
+    techStack: ["Next.js", "OpenAI GPT-4", "Prisma", "PostgreSQL", "Chart.js", "TailwindCSS"],
     features: [
-      "Interactive quantum circuit builder",
-      "AI-powered concept explanations",
-      "Personalized learning paths",
-      "3D quantum state visualizations",
-      "Progress tracking and analytics"
+      "Real-time carbon footprint calculation",
+      "AI-powered sustainability recommendations",
+      "Social challenges and leaderboards",
+      "Corporate dashboard for businesses",
+      "Integration with smart home devices"
     ],
-    challenges: "Implementing accurate quantum simulations in the browser and creating intuitive visualizations for complex quantum concepts.",
-    accomplishments: "Successfully created an educational platform that makes quantum computing accessible to beginners while providing advanced features for experts.",
-    learnings: "Learned about quantum computing principles, 3D rendering in browsers, and designing educational user experiences.",
-    nextSteps: "Add more quantum algorithms, implement collaborative features, and integrate with educational institutions."
+    challenges: "Accurately calculating carbon footprints from user data and creating engaging gamification that motivates long-term behavior change.",
+    accomplishments: "Built a complete platform with AI recommendations that achieved 40% user engagement in beta testing.",
+    learnings: "Learned about environmental data APIs, behavior psychology in app design, and building scalable real-time analytics.",
+    nextSteps: "Partner with environmental organizations, add IoT device integrations, and launch corporate sustainability packages."
   });
+
+  await ensureSubmission({
+    title: "MediConnect",
+    description: "Telemedicine platform connecting rural patients with specialist doctors through AI-assisted diagnosis and remote monitoring capabilities.",
+    status: "submitted",
+    eventId: e1.id,
+    teamId: aiPioneers.id,
+    roundId: e1r1?.id,
+    trackId: healthTrack?.id,
+    repoUrl: "https://github.com/ai-pioneers/mediconnect",
+    liveUrl: "https://mediconnect-demo.netlify.app",
+    videoUrl: "https://youtu.be/mediconnect-demo",
+    presentationUrl: "https://slides.com/ai-pioneers/mediconnect",
+    techStack: ["React", "Node.js", "WebRTC", "TensorFlow.js", "Firebase", "Stripe"],
+    features: [
+      "HD video consultations with screen sharing",
+      "AI-powered symptom analysis and triage",
+      "Secure patient data management",
+      "Prescription and lab order system",
+      "Multi-language support for global access"
+    ],
+    challenges: "Ensuring HIPAA compliance while maintaining seamless user experience and implementing reliable AI diagnosis in a web environment.",
+    accomplishments: "Successfully demo'd with real doctors, achieved sub-200ms latency for video calls, and implemented secure end-to-end encryption.",
+    learnings: "Deep dive into healthcare regulations, WebRTC optimization, and building trust in AI-assisted medical tools.",
+    nextSteps: "Pursue FDA approval for AI components, partner with rural healthcare networks, and expand to mental health services."
+  });
+
+  // Add plagiarism reports for realistic demo
+  const submission1 = await prisma.submission.findFirst({ where: { title: "EcoTracker AI" } });
+  if (submission1) {
+    await prisma.plagiarismReport.create({
+      data: {
+        submissionId: submission1.id,
+        overallScore: 15,
+        status: "clean",
+        checkedAt: new Date(),
+        details: JSON.stringify({
+          codeSimularity: 12,
+          textSimilarity: 8,
+          structureSimilarity: 15,
+          summary: "Low similarity detected. Project appears to be original work."
+        })
+      }
+    });
+  }
+
+  const submission2 = await prisma.submission.findFirst({ where: { title: "MediConnect" } });
+  if (submission2) {
+    await prisma.plagiarismReport.create({
+      data: {
+        submissionId: submission2.id,
+        overallScore: 25,
+        status: "moderate",
+        checkedAt: new Date(),
+        details: JSON.stringify({
+          codeSimularity: 20,
+          textSimilarity: 30,
+          structureSimilarity: 25,
+          summary: "Moderate similarity in documentation. Code appears original."
+        })
+      }
+    });
+
+    await prisma.plagiarismMatch.create({
+      data: {
+        reportId: (await prisma.plagiarismReport.findFirst({ where: { submissionId: submission2.id } }))?.id,
+        sourceType: "github",
+        sourceUrl: "https://github.com/example/telemedicine-base",
+        similarity: 25,
+        matchedContent: "Similar README structure and API documentation patterns"
+      }
+    });
+  }
 
   // Create announcements
   await createAnnouncement(
     e1.id,
     alice.id,
-    "🚀 SynapHack 3.0 Registration Now Open!",
-    "We're excited to announce that registration for SynapHack 3.0 is now open! Join us for 48 hours of innovation, learning, and building. Early bird registration includes exclusive swag and mentor sessions.",
+    "🚀 SynapHack 2025 Registration Closing Soon!",
+    "Only 2 days left to register for SynapHack 2025! Don't miss your chance to join 2,000+ innovators from around the globe. Register now to secure your spot and receive exclusive pre-event resources.",
     "urgent",
     "high"
   );
@@ -456,17 +537,17 @@ What makes SynapHack special:
   await createAnnouncement(
     e1.id,
     alice.id,
-    "🔥 Mentors Announced!",
-    "Meet our incredible lineup of mentors from Google, Microsoft, Meta, and top startups. They'll be available throughout the event to guide your teams and provide expert feedback.",
+    "🏆 Prize Pool Increased to $75,000!",
+    "We're excited to announce that our sponsors have increased the total prize pool to $75,000! This includes cash prizes, mentorship opportunities, and startup incubator spots.",
     "update",
-    "normal"
+    "high"
   );
 
   await createAnnouncement(
     e1.id,
     alice.id,
-    "💡 Workshop Schedule Released",
-    "Check out our pre-event workshop schedule covering AI fundamentals, pitch presentation skills, and technical deep-dives. Register for workshops in your dashboard.",
+    "💡 Pre-Event Workshop Schedule Live",
+    "Check out our pre-event workshops covering AI fundamentals, sustainable tech trends, and pitch presentation masterclasses. All workshops are free for registered participants.",
     "general",
     "normal"
   );
@@ -474,20 +555,58 @@ What makes SynapHack special:
   // Create analytics data
   await prisma.eventAnalytics.createMany({
     data: [
-      { eventId: e1.id, date: days(-5), registrations: 45, teams: 12, submissions: 0, pageViews: 1250, uniqueVisitors: 890 },
-      { eventId: e1.id, date: days(-4), registrations: 67, teams: 18, submissions: 0, pageViews: 1580, uniqueVisitors: 1120 },
-      { eventId: e1.id, date: days(-3), registrations: 89, teams: 24, submissions: 0, pageViews: 2100, uniqueVisitors: 1450 },
-      { eventId: e1.id, date: days(-2), registrations: 112, teams: 31, submissions: 0, pageViews: 2780, uniqueVisitors: 1890 },
-      { eventId: e1.id, date: days(-1), registrations: 134, teams: 38, submissions: 0, pageViews: 3200, uniqueVisitors: 2250 }
+      { eventId: e1.id, date: days(-7), registrations: 234, teams: 58, submissions: 0, pageViews: 3420, uniqueVisitors: 2180 },
+      { eventId: e1.id, date: days(-6), registrations: 456, teams: 112, submissions: 0, pageViews: 4850, uniqueVisitors: 3100 },
+      { eventId: e1.id, date: days(-5), registrations: 678, teams: 169, submissions: 0, pageViews: 6200, uniqueVisitors: 4250 },
+      { eventId: e1.id, date: days(-4), registrations: 891, teams: 223, submissions: 0, pageViews: 7800, uniqueVisitors: 5400 },
+      { eventId: e1.id, date: days(-3), registrations: 1023, teams: 256, submissions: 0, pageViews: 9100, uniqueVisitors: 6300 },
+      { eventId: e1.id, date: days(-2), registrations: 1234, teams: 308, submissions: 0, pageViews: 11500, uniqueVisitors: 7800 },
+      { eventId: e1.id, date: days(-1), registrations: 1456, teams: 364, submissions: 0, pageViews: 13200, uniqueVisitors: 8900 }
     ]
   });
 
-  console.log("✅ Comprehensive seed completed!");
+  // Create POAPs for demo
+  await prisma.pOAP.createMany({
+    data: [
+      {
+        eventId: e1.id,
+        name: "SynapHack 2025 Participant",
+        description: "Proof of participation in SynapHack 2025 global hackathon",
+        imageUrl: "https://images.unsplash.com/photo-1614680376739-414d95ff43df?w=400&h=400&fit=crop",
+        isActive: true,
+        mintLimit: 2000,
+        mintedCount: 1456
+      },
+      {
+        eventId: e1.id,
+        name: "SynapHack 2025 Winner",
+        description: "Champion of SynapHack 2025 - Top innovator recognition",
+        imageUrl: "https://images.unsplash.com/photo-1567016432779-094069958ea5?w=400&h=400&fit=crop",
+        isActive: true,
+        mintLimit: 50,
+        mintedCount: 0
+      },
+      {
+        eventId: e2.id,
+        name: "AI Builders Week Graduate",
+        description: "Completed the intensive AI Builders Week program",
+        imageUrl: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=400&fit=crop",
+        isActive: true,
+        mintLimit: 500,
+        mintedCount: 124
+      }
+    ]
+  });
+
+  console.log("✅ Pitch-ready database seeded successfully!");
   console.log({
     events: [e1.slug, e2.slug, e3.slug],
     users: [alice.name, bob.name, carol.name, participant1.name, participant2.name, participant3.name],
     teams: [quantumTeam.name, aiPioneers.name, sustainableInnovators.name],
-    message: "Database seeded with comprehensive hackathon platform data!"
+    submissions: 2,
+    plagiarismReports: 2,
+    announcements: 3,
+    message: "HackHub platform ready for pitch with realistic demo data!"
   });
 }
 
