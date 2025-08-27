@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PageContainer } from "@/components/PageContainer";
-import FlowingRiver from "@/components/FlowingRiver";
 import { CalendarDays, Users, Trophy, Plus, ArrowRight, BarChart3, Shield, Crown, Sparkles, Zap, Star, Compass } from "lucide-react";
 
 // Minimal mock data for stats
@@ -37,9 +36,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Magical Flowing River Background */}
-      <FlowingRiver />
-      
       <PageContainer className="space-y-32 animate-fade-in relative z-10" size="xl">
         {/* Magical Hero Section */}
         <div className="relative overflow-hidden rounded-3xl border-2 border-violet-200/60 dark:border-violet-800/60 p-20 lg:p-24 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl shadow-2xl animate-magical-glow">

@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { CommandMenu } from "@/components/shell/command-menu";
-import { FlowBackground } from "@/components/FlowBackground";
 import Providers from "./Providers";
 
 export const metadata = { 
@@ -32,10 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {/* Enhanced Topbar */}
                   <Topbar />
 
-                  {/* Dynamic flowing background */}
-                          <FlowBackground intensity="subtle">
-                    {children}
-                  </FlowBackground>
+                  {/* Main Content */}
+                  {children}
                 </main>
               </div>
               <CommandMenu />
