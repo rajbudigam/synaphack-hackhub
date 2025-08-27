@@ -2,37 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Magical Flowing River Animations */
-@keyframes flow-right {
-  0% { transform: translateX(-100%) rotate(-12deg); }
-  100% { transform: translateX(100%) rotate(-12deg); }
+/* Aurora Veil Animations */
+@keyframes aurora-drift-slow {
+  0%, 100% { 
+    transform: translate(-10%, -10%) scale(1) rotate(0deg); 
+  }
+  25% { 
+    transform: translate(-15%, -5%) scale(1.05) rotate(1deg); 
+  }
+  50% { 
+    transform: translate(-5%, -15%) scale(0.95) rotate(-1deg); 
+  }
+  75% { 
+    transform: translate(-12%, -8%) scale(1.02) rotate(0.5deg); 
+  }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-  25% { transform: translateY(-20px) rotate(90deg); opacity: 0.7; }
-  50% { transform: translateY(-10px) rotate(180deg); opacity: 1; }
-  75% { transform: translateY(-30px) rotate(270deg); opacity: 0.7; }
+@keyframes aurora-drift-reverse {
+  0%, 100% { 
+    transform: translate(10%, -10%) scale(1) rotate(0deg); 
+  }
+  25% { 
+    transform: translate(15%, -5%) scale(0.95) rotate(-1deg); 
+  }
+  50% { 
+    transform: translate(5%, -15%) scale(1.05) rotate(1deg); 
+  }
+  75% { 
+    transform: translate(12%, -8%) scale(0.98) rotate(-0.5deg); 
+  }
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateX(100%); opacity: 0; }
+@keyframes aurora-pulse {
+  0%, 100% { 
+    transform: translate(-5%, -5%) scale(1) rotate(0deg); 
+    opacity: 0.1;
+  }
+  50% { 
+    transform: translate(-8%, -8%) scale(1.1) rotate(0.5deg); 
+    opacity: 0.15;
+  }
 }
 
-@keyframes shimmer-delayed {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 0.8; }
-  100% { transform: translateX(100%); opacity: 0; }
+@keyframes stream-flow-1 {
+  0% { 
+    background-position: 0px 0px; 
+  }
+  100% { 
+    background-position: 200px 200px; 
+  }
 }
 
-@keyframes shimmer-delayed-2 {
-  0% { transform: translateX(-100%); opacity: 0; }
-  50% { opacity: 0.6; }
-  100% { transform: translateX(100%); opacity: 0; }
+@keyframes stream-flow-2 {
+  0% { 
+    background-position: 0px 0px; 
+  }
+  100% { 
+    background-position: 300px 300px; 
+  }
 }
 
+@keyframes stream-flow-3 {
+  0% { 
+    background-position: 0px 0px; 
+  }
+  100% { 
+    background-position: 160px 160px; 
+  }
+}
+
+/* Preserve existing magical animations */
 @keyframes magical-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1); }
   50% { box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 0 60px rgba(139, 92, 246, 0.2); }
@@ -43,26 +82,51 @@
   50% { transform: scale(1.05); opacity: 1; }
 }
 
-.animate-flow-right {
-  animation: flow-right linear infinite;
+/* Aurora Animation Classes */
+.animate-aurora-drift-slow {
+  animation: aurora-drift-slow linear infinite;
 }
 
-.animate-float {
-  animation: float ease-in-out infinite;
+.animate-aurora-drift-reverse {
+  animation: aurora-drift-reverse linear infinite;
 }
 
-.animate-shimmer {
-  animation: shimmer 3s ease-in-out infinite;
+.animate-aurora-pulse {
+  animation: aurora-pulse ease-in-out infinite;
 }
 
-.animate-shimmer-delayed {
-  animation: shimmer-delayed 4s ease-in-out infinite 1s;
+.animate-stream-flow-1 {
+  animation: stream-flow-1 linear infinite;
 }
 
-.animate-shimmer-delayed-2 {
-  animation: shimmer-delayed-2 5s ease-in-out infinite 2s;
+.animate-stream-flow-2 {
+  animation: stream-flow-2 linear infinite;
 }
 
+.animate-stream-flow-3 {
+  animation: stream-flow-3 linear infinite;
+}
+
+/* Accessibility: Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-drift-slow,
+  .animate-aurora-drift-reverse,
+  .animate-aurora-pulse,
+  .animate-stream-flow-1,
+  .animate-stream-flow-2,
+  .animate-stream-flow-3 {
+    animation: none;
+  }
+  
+  /* Show static gradient fallback for reduced motion */
+  .animate-aurora-drift-slow,
+  .animate-aurora-drift-reverse,
+  .animate-aurora-pulse {
+    opacity: 0.1 !important;
+  }
+}
+
+/* Keep the magical animations that are still being used */
 .animate-magical-glow {
   animation: magical-glow 4s ease-in-out infinite;
 }
