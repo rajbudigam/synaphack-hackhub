@@ -4,7 +4,7 @@ import React from "react";
 export default function CalmRiver({
   className = "",
   height = 220,
-  opacity = 0.35,
+  opacity = 0.45,
 }: { className?: string; height?: number; opacity?: number }) {
   return (
     <div

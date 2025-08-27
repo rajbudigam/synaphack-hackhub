@@ -17,9 +17,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className="antialiased relative">
+        <body className="antialiased relative min-h-screen">
           <BackgroundFX />
-          <div className="relative z-10">
+          <div className="relative z-10 min-h-screen">
             <Providers>
               {children}
             </Providers>

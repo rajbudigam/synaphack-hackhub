@@ -67,7 +67,7 @@
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f8fafc;
+    background-color: transparent;
     color: #0f172a;
     letter-spacing: 0.005em;     /* micro-wide for UI text */
     line-height: 1.35;           /* comfy everywhere */
@@ -78,7 +78,7 @@
 
   /* Dark mode support */
   .dark body {
-    background-color: #020617;
+    background-color: transparent;
     color: #f1f5f9;
   }
 
