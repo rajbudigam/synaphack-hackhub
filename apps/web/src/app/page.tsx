@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import FlowingRiver from "@/components/FlowingRiver";
 import NLFormDemo from "@/components/NLFormDemo";
 import {
   Zap,
@@ -135,6 +136,9 @@ const achievements = [
 export default function Home() {
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Magical Flowing River Background */}
+      <FlowingRiver />
+      
       {/* Hero Section - Transcendent Ultra */}
       <section className="relative min-h-screen flex items-center justify-center py-32">
         <div className="container mx-auto px-6 lg:px-8">
