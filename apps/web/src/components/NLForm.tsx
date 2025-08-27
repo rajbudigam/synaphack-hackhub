@@ -34,7 +34,7 @@ export default function NLForm({ onSubmit }: { onSubmit: (p: Parsed) => void }) 
           .map(([k, v]) => (
             <span
               key={k}
-              className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs"
             >
               <b className="capitalize">{k}</b>
               <span className="text-zinc-600">{String(v)}</span>

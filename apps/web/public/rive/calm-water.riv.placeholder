@@ -1,0 +1,10 @@
+// This is a placeholder for a real Rive animation file
+// In a real implementation, you would:
+// 1. Create an animation in Rive Editor (rive.app)
+// 2. Export it as a .riv file
+// 3. Place it in this directory
+//
+// For now, the CalmWaterline component has a graceful CSS fallback
+// when the .riv file is not available.
+
+console.log("Rive asset placeholder - create your animation at rive.app");
