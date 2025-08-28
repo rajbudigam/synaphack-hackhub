@@ -58,7 +58,6 @@ async function ensureEvent({
     prizeMoney,
     rules: JSON.stringify(rules),
     schedule: JSON.stringify(schedule),
-    sponsors: JSON.stringify(sponsors),
     mentorsList: JSON.stringify(mentorsList),
     tags: JSON.stringify(tags),
     coverImage,
@@ -193,6 +192,7 @@ async function main() {
   // Create users with different roles
   const alice = await ensureUser({
     email: "alice@hackhub.dev",
+    clerkId: "user_alice_organizer_123",
     name: "Alice Thompson",
     role: "organizer",
     bio: "Lead organizer passionate about innovation and technology",
@@ -203,7 +203,8 @@ async function main() {
   });
 
   const bob = await ensureUser({
-    email: "bob@hackhub.dev", 
+    email: "bob@hackhub.dev",
+    clerkId: "user_bob_judge_456", 
     name: "Dr. Bob Wilson",
     role: "judge",
     bio: "Senior Tech Lead and Innovation Expert",
@@ -215,6 +216,7 @@ async function main() {
 
   const carol = await ensureUser({
     email: "carol@hackhub.dev",
+    clerkId: "user_carol_mentor_789",
     name: "Carol Martinez",
     role: "mentor", 
     bio: "Startup founder and product strategist",
@@ -226,6 +228,7 @@ async function main() {
 
   const participant1 = await ensureUser({
     email: "alex@student.dev",
+    clerkId: "user_alex_participant_101",
     name: "Alex Chen",
     role: "participant",
     bio: "Computer Science student passionate about AI",
@@ -236,6 +239,7 @@ async function main() {
 
   const participant2 = await ensureUser({
     email: "maria@student.dev",
+    clerkId: "user_maria_participant_102",
     name: "Maria Rodriguez", 
     role: "participant",
     bio: "Full-stack developer and UI/UX enthusiast",
@@ -246,6 +250,7 @@ async function main() {
 
   const participant3 = await ensureUser({
     email: "david@student.dev",
+    clerkId: "user_david_participant_103",
     name: "David Kim",
     role: "participant",
     bio: "Mobile app developer and blockchain enthusiast",
@@ -483,43 +488,36 @@ Join 2,000+ participants from 50+ countries in building solutions that matter. E
     await prisma.plagiarismReport.create({
       data: {
         submissionId: submission1.id,
-        overallScore: 15,
-        status: "clean",
-        checkedAt: new Date(),
-        details: JSON.stringify({
-          codeSimularity: 12,
-          textSimilarity: 8,
-          structureSimilarity: 15,
-          summary: "Low similarity detected. Project appears to be original work."
-        })
+        summary: "Low similarity detected. Project appears to be original work.",
+        maxCosine: 0.15,
+        minHamming: 12,
+        maxJaccard: 0.08
       }
     });
   }
 
   const submission2 = await prisma.submission.findFirst({ where: { title: "MediConnect" } });
   if (submission2) {
-    await prisma.plagiarismReport.create({
+    const report = await prisma.plagiarismReport.create({
       data: {
         submissionId: submission2.id,
-        overallScore: 25,
-        status: "moderate",
-        checkedAt: new Date(),
-        details: JSON.stringify({
-          codeSimularity: 20,
-          textSimilarity: 30,
-          structureSimilarity: 25,
-          summary: "Moderate similarity in documentation. Code appears original."
-        })
+        summary: "Moderate similarity in documentation. Code appears original.",
+        maxCosine: 0.35,
+        minHamming: 25,
+        maxJaccard: 0.20
       }
     });
 
     await prisma.plagiarismMatch.create({
       data: {
-        reportId: (await prisma.plagiarismReport.findFirst({ where: { submissionId: submission2.id } }))?.id,
-        sourceType: "github",
-        sourceUrl: "https://github.com/example/telemedicine-base",
-        similarity: 25,
-        matchedContent: "Similar README structure and API documentation patterns"
+        reportId: report.id,
+        otherSubmissionId: submission1.id, // Reference to another submission
+        cosine: 0.25,
+        hamming: 20,
+        jaccard: 0.15,
+        overlapPercent: 15.5,
+        snippetA: "Similar README structure and API documentation patterns",
+        snippetB: "Documentation follows similar structure with API patterns"
       }
     });
   }

@@ -2,8 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
+import { Avatar, AvatarFallback } from "@/components/ui/avata          <div className="flex flex-wrap gap-1">
+            {parseTechStack(submission.techStack).slice(0, 3).map((tech: string) => (
+              <Badge key={tech} variant="secondary" className="text-xs">
+                {tech}
+              </Badge>
+            ))}
+            {parseTechStack(submission.techStack).length > 3 && (
+              <Badge variant="outline" className="text-xs">
+                +{parseTechStack(submission.techStack).length - 3}
+              </Badge>
+            )}
+          </div> 
   Code,
   Trophy,
   Eye,
@@ -20,6 +30,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PageContainer } from "@/components/PageContainer";
+
+// Helper function to safely parse tech stack
+const parseTechStack = (techStack: any): string[] => {
+  if (Array.isArray(techStack)) return techStack;
+  if (typeof techStack === 'string') {
+    try {
+      return JSON.parse(techStack);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
 
 async function getSubmissions(): Promise<any[]> {
   const submissions = await prisma.submission.findMany({
@@ -143,7 +166,7 @@ export default async function SubmissionsPage() {
                           {submission.description}
                         </p>
                         <div className="flex items-center space-x-2">
-                          {submission.techStack?.map((tech: string) => (
+                          {parseTechStack(submission.techStack).map((tech: string) => (
                             <Badge key={tech} variant="secondary" className="text-xs">
                               {tech}
                             </Badge>
