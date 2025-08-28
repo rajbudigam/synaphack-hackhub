@@ -2,18 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avata          <div className="flex flex-wrap gap-1">
-            {parseTechStack(submission.techStack).slice(0, 3).map((tech: string) => (
-              <Badge key={tech} variant="secondary" className="text-xs">
-                {tech}
-              </Badge>
-            ))}
-            {parseTechStack(submission.techStack).length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{parseTechStack(submission.techStack).length - 3}
-              </Badge>
-            )}
-          </div> 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { 
   Code,
   Trophy,
   Eye,
@@ -29,20 +19,21 @@ import { Avatar, AvatarFallback } from "@/components/ui/avata          <div clas
   Download
 } from "lucide-react";
 import Link from "next/link";
-import { PageContainer } from "@/components/PageContainer";
 
-// Helper function to safely parse tech stack
-const parseTechStack = (techStack: any): string[] => {
+// Helper function to safely parse techStack JSON
+function parseTechStack(techStack: any): string[] {
   if (Array.isArray(techStack)) return techStack;
   if (typeof techStack === 'string') {
     try {
-      return JSON.parse(techStack);
+      const parsed = JSON.parse(techStack);
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
   }
   return [];
-};
+}
+import { PageContainer } from "@/components/PageContainer";
 
 async function getSubmissions(): Promise<any[]> {
   const submissions = await prisma.submission.findMany({
@@ -286,14 +277,14 @@ function SubmissionCard({
       <CardContent className="space-y-4">
         {!compact && (
           <div className="flex flex-wrap gap-1">
-            {submission.techStack?.slice(0, 3).map((tech: string) => (
+            {parseTechStack(submission.techStack).slice(0, 3).map((tech: string) => (
               <Badge key={tech} variant="secondary" className="text-xs">
                 {tech}
               </Badge>
             ))}
-            {submission.techStack?.length > 3 && (
+            {parseTechStack(submission.techStack).length > 3 && (
               <Badge variant="secondary" className="text-xs">
-                +{submission.techStack.length - 3}
+                +{parseTechStack(submission.techStack).length - 3}
               </Badge>
             )}
           </div>
