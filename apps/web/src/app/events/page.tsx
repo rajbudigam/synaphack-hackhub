@@ -3,9 +3,11 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Trophy, Plus, Clock } from "lucide-react";
+import { Calendar, Users, Trophy, Plus, Clock, RefreshCw } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { ShellLayout } from "@/components/shell/shell-layout";
+import { BackButton } from "@/components/ui/back-button";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 export default async function EventsPage() {
   const events = await prisma.event.findMany({
@@ -29,6 +31,11 @@ export default async function EventsPage() {
   return (
     <ShellLayout>
       <PageContainer className="space-y-16" size="lg">
+      {/* Back Button */}
+      <div className="mb-6">
+        <BackButton href="/" label="Back to Dashboard" />
+      </div>
+
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -37,12 +44,15 @@ export default async function EventsPage() {
             Discover and participate in exciting hackathons and events
           </p>
         </div>
-        <Button asChild>
-          <Link href="/events/create">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Event
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <RefreshButton />
+          <Button asChild>
+            <Link href="/events/create">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Event
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Ongoing Events */}

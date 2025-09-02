@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ShellLayout } from "@/components/shell/shell-layout";
 import { Trophy, Medal, Award, Users, Target } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
+import { BackButton } from "@/components/ui/back-button";
 
 async function getLeaderboardData() {
   try {
@@ -71,7 +72,8 @@ export default async function LeaderboardPage() {
   return (
     <ShellLayout>
       <PageContainer className="space-y-16" size="lg">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4 mb-8">
+        <BackButton />
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Trophy className="h-8 w-8 text-yellow-500" />

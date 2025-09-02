@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Users, Code, Loader2 } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { ShellLayout } from "@/components/shell/shell-layout";
+import { BackButton } from "@/components/ui/back-button";
 import Link from "next/link";
 
 export default function CreateTeamPage() {
@@ -62,12 +63,7 @@ export default function CreateTeamPage() {
       <PageContainer className="space-y-8" size="lg">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/teams">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Teams
-            </Link>
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <Users className="h-8 w-8 text-blue-500" />

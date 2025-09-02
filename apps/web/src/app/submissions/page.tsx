@@ -19,6 +19,9 @@ import {
   Download
 } from "lucide-react";
 import Link from "next/link";
+import { BackButton } from "@/components/ui/back-button";
+import { ExportButton } from "@/components/ui/export-button";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 // Helper function to safely parse techStack JSON
 function parseTechStack(techStack: any): string[] {
@@ -72,6 +75,11 @@ export default async function SubmissionsPage() {
 
   return (
     <PageContainer className="space-y-16" size="lg">
+      {/* Back Button */}
+      <div className="mb-6">
+        <BackButton href="/" label="Back to Dashboard" />
+      </div>
+
       {/* Header */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
@@ -81,6 +89,7 @@ export default async function SubmissionsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <RefreshButton />
           <Button variant="outline" size="sm">
             <Filter className="mr-2 h-4 w-4" />
             Filter
@@ -128,10 +137,7 @@ export default async function SubmissionsPage() {
   <section className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold">All Submissions</h2>
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
+          <ExportButton data={submissions} filename="submissions" />
         </div>
         <div className="rounded-md border">
           <div className="overflow-x-auto">

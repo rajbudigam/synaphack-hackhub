@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar, Users, Trophy, Loader2 } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { ShellLayout } from "@/components/shell/shell-layout";
+import { BackButton } from "@/components/ui/back-button";
 import Link from "next/link";
 
 export default function CreateEventPage() {
@@ -76,12 +77,7 @@ export default function CreateEventPage() {
       <PageContainer className="space-y-8" size="lg">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/events">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Events
-            </Link>
-          </Button>
+          <BackButton />
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <Trophy className="h-8 w-8 text-yellow-500" />

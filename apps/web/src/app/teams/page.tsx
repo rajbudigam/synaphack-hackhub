@@ -9,6 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Users, Trophy, Plus, UserPlus, Settings, Eye } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { ShellLayout } from "@/components/shell/shell-layout";
+import { BackButton } from "@/components/ui/back-button";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 export default async function TeamsPage() {
   const teams = await prisma.team.findMany({
@@ -40,17 +42,27 @@ export default async function TeamsPage() {
   return (
     <ShellLayout>
       <PageContainer className="space-y-16" size="lg">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center gap-4 mb-8">
+        <BackButton />
+        <div className="flex-1">
           <h1 className="text-3xl font-bold">Teams</h1>
           <p className="text-muted-foreground">Manage your teams and join new ones</p>
         </div>
-        <Button asChild>
-          <Link href="/teams/create">
-            <Plus className="h-4 w-4 mr-2" />
-            Create Team
-          </Link>
-        </Button>
+      </div>
+      
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-semibold">All Teams</h2>
+        </div>
+        <div className="flex gap-2">
+          <RefreshButton />
+          <Button asChild>
+            <Link href="/teams/create">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Team
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* My Teams */}

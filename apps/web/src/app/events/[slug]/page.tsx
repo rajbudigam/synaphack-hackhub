@@ -19,130 +19,90 @@ import {
   Target
 } from "lucide-react";
 import Link from "next/link";
-
-// Mock types
-interface MockEvent {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-  location: string;
-  maxTeamSize: number;
-  prizes: string[];
-  submissions: Array<{
-    id: string;
-    title: string;
-    description: string;
-    liveUrl: string;
-    repoUrl: string;
-    team: { name: string };
-    _count: { scores: number };
-  }>;
-  teams: Array<{
-    id: string;
-    name: string;
-    status: string;
-    _count: { members: number };
-  }>;
-  announcements: Array<{
-    id: string;
-    title: string;
-    content: string;
-    type: string;
-    createdAt: Date;
-  }>;
-  mentors: Array<{
-    id: string;
-    name: string;
-    avatar: string;
-  }>;
-  _count: {
-    registrations: number;
-    teams: number;
-    submissions: number;
-  };
-}
+import { prisma } from "@/lib/prisma";
+import { BackButton } from "@/components/ui/back-button";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Mock data
-const mockEvents: Record<string, MockEvent> = {
-  "hackhub-30": {
-    id: "1",
-  title: "HackHub 3.0",
-    description: "The ultimate 48-hour hackathon focused on AI, Web3, and emerging technologies.",
-    status: "active",
-    startDate: "2025-08-29T09:00:00Z",
-    endDate: "2025-08-31T18:00:00Z",
-    location: "TechHub Innovation Center, San Francisco",
-    maxTeamSize: 5,
-    prizes: ["$50,000 Grand Prize", "$20,000 Runner-up", "$10,000 People's Choice"],
-    submissions: [
-      {
-        id: "1",
-        title: "AI Code Assistant",
-        description: "Revolutionary AI-powered coding companion",
-        liveUrl: "https://demo.example.com",
-        repoUrl: "https://github.com/team/ai-assistant",
-        team: { name: "Code Crusaders" },
-        _count: { scores: 25 }
-      },
-      {
-        id: "2",
-        title: "Smart City Dashboard",
-        description: "Real-time city analytics platform",
-        liveUrl: "https://city.example.com",
-        repoUrl: "https://github.com/team/city",
-        team: { name: "Tech Titans" },
-        _count: { scores: 18 }
-      }
-    ],
-    teams: [
-      { id: "1", name: "Code Crusaders", status: "active", _count: { members: 4 } },
-      { id: "2", name: "Tech Titans", status: "active", _count: { members: 3 } },
-      { id: "3", name: "Innovation Squad", status: "active", _count: { members: 5 } }
-    ],
-    announcements: [
-      {
-        id: "1",
-  title: "Welcome to HackHub 3.0!",
-        content: "Event starts in 2 hours. Make sure you've checked in!",
-        type: "general",
-        createdAt: new Date("2025-08-29")
-      }
-    ],
-    mentors: [
-      { id: "1", name: "Dr. Sarah Chen", avatar: "" },
-      { id: "2", name: "Michael Johnson", avatar: "" }
-    ],
-    _count: {
-      registrations: 180,
-      teams: 45,
-      submissions: 23
+// Helper function to safely parse JSON
+function parseJSON(data: any, fallback: any = []) {
+  if (Array.isArray(data)) return data;
+  if (typeof data === 'string') {
+    try {
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : fallback;
+    } catch {
+      return fallback;
     }
   }
-};
+  return fallback;
+}
 
 export default async function EventDetail({ params }: PageProps) {
   const { slug } = await params;
   
-  // Get mock event data
-  const event = mockEvents[slug];
+  // Fetch real event data from database
+  const event = await prisma.event.findUnique({
+    where: { slug },
+    include: {
+      tracks: true,
+      rounds: true,
+      sponsors: true,
+      teams: {
+        include: {
+          _count: {
+            select: { members: true }
+          }
+        },
+        take: 10
+      },
+      submissions: {
+        include: {
+          team: {
+            select: { name: true }
+          },
+          _count: {
+            select: { scores: true }
+          }
+        },
+        take: 10,
+        orderBy: { createdAt: 'desc' }
+      },
+      announcements: {
+        orderBy: { createdAt: 'desc' },
+        take: 5
+      },
+      _count: {
+        select: {
+          registrations: true,
+          teams: true,
+          submissions: true
+        }
+      }
+    }
+  });
   
   if (!event) return notFound();
 
-  const isActive = event.status === 'active';
+  const isActive = event.status === 'published' || event.status === 'active';
   const isEnded = event.status === 'completed';
-  const startDate = new Date(event.startDate);
-  const endDate = new Date(event.endDate);
+  const startDate = new Date(event.startsAt);
+  const endDate = new Date(event.endsAt);
+  
+  const schedule = parseJSON(event.schedule, []);
+  const mentorsList = parseJSON(event.mentorsList, []);
+  const tags = parseJSON(event.tags, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="container mx-auto px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <BackButton href="/events" label="Back to Events" />
+        </div>
+
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border mb-8 overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8">
@@ -161,22 +121,31 @@ export default async function EventDetail({ params }: PageProps) {
                   </div>
                 </div>
                 
-                <h1 className="text-4xl font-bold">{event.title}</h1>
+                <h1 className="text-4xl font-bold">{event.name}</h1>
                 <p className="text-xl text-blue-100 max-w-2xl">{event.description}</p>
                 
-                <div className="flex items-center gap-6 text-blue-100">
+                <div className="flex items-center gap-6 text-blue-100 flex-wrap">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
-                    <span>{event.location}</span>
+                    <span>{event.mode === 'offline' ? 'In-Person' : event.mode === 'online' ? 'Virtual' : 'Hybrid'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
                     <span>Max {event.maxTeamSize} per team</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    <span>48 hours</span>
+                    <DollarSign className="w-4 h-4" />
+                    <span>{event.prizeMoney}</span>
                   </div>
+                </div>
+                
+                {/* Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="bg-white/20 text-white border-white/30">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               
@@ -197,7 +166,7 @@ export default async function EventDetail({ params }: PageProps) {
           <div className="grid grid-cols-3 divide-x border-t">
             <div className="p-6 text-center">
               <div className="text-2xl font-bold text-gray-900">{event._count.registrations}</div>
-              <div className="text-sm text-gray-500">Participants</div>
+              <div className="text-sm text-gray-500">Registrations</div>
             </div>
             <div className="p-6 text-center">
               <div className="text-2xl font-bold text-gray-900">{event._count.teams}</div>
@@ -213,71 +182,179 @@ export default async function EventDetail({ params }: PageProps) {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Prizes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  Prizes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {event.prizes.map((prize, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border">
-                      <div className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold text-sm">
-                        {index + 1}
-                      </div>
-                      <span className="font-medium">{prize}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Description */}
+            {event.longDescription && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>About This Event</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose max-w-none">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">
+                      {event.longDescription}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Tracks/Categories */}
+            {event.tracks.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-purple-500" />
+                    Event Tracks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    {event.tracks.map((track) => {
+                      const prizes = parseJSON(track.prizes, {});
+                      return (
+                        <div key={track.id} className="border rounded-lg p-4" style={{ borderColor: track.color || '#e5e7eb' }}>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-lg" style={{ color: track.color || 'inherit' }}>
+                                {track.name}
+                              </h3>
+                              {track.description && (
+                                <p className="text-gray-600 mt-1">{track.description}</p>
+                              )}
+                            </div>
+                            {Object.keys(prizes).length > 0 && (
+                              <div className="text-right">
+                                <div className="text-sm font-medium text-gray-900">
+                                  1st: {prizes.first || 'TBA'}
+                                </div>
+                                {prizes.second && (
+                                  <div className="text-xs text-gray-600">2nd: {prizes.second}</div>
+                                )}
+                                {prizes.third && (
+                                  <div className="text-xs text-gray-600">3rd: {prizes.third}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Submissions */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Code className="w-5 h-5 text-blue-500" />
-                  Recent Submissions
+                  Recent Submissions ({event._count.submissions})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {event.submissions.map((submission) => (
-                    <div key={submission.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-semibold text-lg">{submission.title}</h3>
-                            <Badge variant="outline" className="text-xs">
-                              {submission.team.name}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-600 text-sm">{submission.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span>{submission._count.scores} votes</span>
-                            <div className="flex gap-2">
-                              <Button size="sm" variant="outline" className="text-xs" asChild>
-                                <Link href={submission.liveUrl} target="_blank">
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  Demo
-                                </Link>
-                              </Button>
-                              <Button size="sm" variant="outline" className="text-xs" asChild>
-                                <Link href={submission.repoUrl} target="_blank">
-                                  <Code className="w-3 h-3 mr-1" />
-                                  Code
-                                </Link>
-                              </Button>
+                  {event.submissions.length > 0 ? (
+                    event.submissions.map((submission) => {
+                      const techStack = parseJSON(submission.techStack, []);
+                      const features = parseJSON(submission.features, []);
+                      
+                      return (
+                        <div key={submission.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-2 flex-1">
+                              <div className="flex items-center gap-3">
+                                <h3 className="font-semibold text-lg">{submission.title}</h3>
+                                <Badge variant="outline" className="text-xs">
+                                  {submission.team?.name || 'No Team'}
+                                </Badge>
+                                <Badge 
+                                  variant={submission.status === 'submitted' ? 'default' : 'secondary'} 
+                                  className="text-xs"
+                                >
+                                  {submission.status}
+                                </Badge>
+                              </div>
+                              
+                              <p className="text-gray-600">{submission.description}</p>
+                              
+                              {features.length > 0 && (
+                                <div className="space-y-1">
+                                  <h4 className="text-sm font-medium text-gray-900">Key Features:</h4>
+                                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                    {features.slice(0, 3).map((feature: string, index: number) => (
+                                      <li key={index}>{feature}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {techStack.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {techStack.slice(0, 5).map((tech: string, index: number) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      {tech}
+                                    </Badge>
+                                  ))}
+                                  {techStack.length > 5 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{techStack.length - 5} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              )}
+                              
+                              <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
+                                <span>{submission._count.scores} evaluations</span>
+                                <div className="flex gap-2">
+                                  {submission.liveUrl && (
+                                    <Button size="sm" variant="outline" className="text-xs" asChild>
+                                      <Link href={submission.liveUrl} target="_blank">
+                                        <ExternalLink className="w-3 h-3 mr-1" />
+                                        Live Demo
+                                      </Link>
+                                    </Button>
+                                  )}
+                                  {submission.repoUrl && (
+                                    <Button size="sm" variant="outline" className="text-xs" asChild>
+                                      <Link href={submission.repoUrl} target="_blank">
+                                        <Code className="w-3 h-3 mr-1" />
+                                        Repository
+                                      </Link>
+                                    </Button>
+                                  )}
+                                  {submission.videoUrl && (
+                                    <Button size="sm" variant="outline" className="text-xs" asChild>
+                                      <Link href={submission.videoUrl} target="_blank">
+                                        <ExternalLink className="w-3 h-3 mr-1" />
+                                        Video
+                                      </Link>
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Code className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>No submissions yet. Be the first to submit your project!</p>
                     </div>
-                  ))}
+                  )}
                 </div>
+                
+                {event.submissions.length > 0 && (
+                  <div className="mt-4 text-center">
+                    <Button variant="outline" asChild>
+                      <Link href="/submissions">
+                        View All Submissions
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -286,30 +363,47 @@ export default async function EventDetail({ params }: PageProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-green-500" />
-                  Teams
+                  Teams ({event._count.teams})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3">
-                  {event.teams.map((team) => (
-                    <div key={team.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="text-xs">
-                            {team.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h4 className="font-medium">{team.name}</h4>
-                          <p className="text-sm text-gray-500">{team._count.members} members</p>
+                  {event.teams.length > 0 ? (
+                    event.teams.map((team) => (
+                      <div key={team.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8">
+                            <AvatarFallback className="text-xs">
+                              {team.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h4 className="font-medium">{team.name}</h4>
+                            <p className="text-sm text-gray-500">{team._count.members} members</p>
+                          </div>
                         </div>
+                        <Badge variant={team.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                          {team.status}
+                        </Badge>
                       </div>
-                      <Badge variant={team.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                        {team.status}
-                      </Badge>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>No teams formed yet. Create your team now!</p>
                     </div>
-                  ))}
+                  )}
                 </div>
+                
+                {event.teams.length > 0 && (
+                  <div className="mt-4 text-center">
+                    <Button variant="outline" asChild>
+                      <Link href="/teams">
+                        View All Teams
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -323,9 +417,9 @@ export default async function EventDetail({ params }: PageProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button className="w-full" asChild>
-                  <Link href="/teams">
+                  <Link href="/teams/create">
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Join Team
+                    Create Team
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
@@ -336,10 +430,35 @@ export default async function EventDetail({ params }: PageProps) {
                 </Button>
                 <Button variant="outline" className="w-full">
                   <Download className="w-4 h-4 mr-2" />
-                  Resources
+                  Event Resources
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Schedule */}
+            {schedule.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Event Schedule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {schedule.slice(0, 5).map((item: any, index: number) => (
+                      <div key={index} className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <Clock className="w-3 h-3" />
+                          {item.time}
+                        </div>
+                        <h4 className="font-medium text-sm">{item.title}</h4>
+                        {item.description && (
+                          <p className="text-xs text-gray-600">{item.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Announcements */}
             <Card>
@@ -348,40 +467,54 @@ export default async function EventDetail({ params }: PageProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {event.announcements.map((announcement) => (
-                    <div key={announcement.id} className="space-y-2">
-                      <h4 className="font-medium text-sm">{announcement.title}</h4>
-                      <p className="text-xs text-gray-600">{announcement.content}</p>
-                      <p className="text-xs text-gray-400">
-                        {announcement.createdAt.toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
+                  {event.announcements.length > 0 ? (
+                    event.announcements.map((announcement) => (
+                      <div key={announcement.id} className="space-y-2">
+                        <h4 className="font-medium text-sm">{announcement.title}</h4>
+                        <p className="text-xs text-gray-600">{announcement.content}</p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(announcement.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500">No announcements yet.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Mentors */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Mentors</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {event.mentors.map((mentor) => (
-                    <div key={mentor.id} className="flex items-center gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={mentor.avatar} />
-                        <AvatarFallback className="text-xs">
-                          {mentor.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium">{mentor.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {mentorsList.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Mentors</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {mentorsList.map((mentor: any, index: number) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage src={mentor.image} />
+                          <AvatarFallback className="text-xs">
+                            {mentor.name.split(' ').map((n: string) => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <span className="text-sm font-medium">{mentor.name}</span>
+                          {mentor.company && (
+                            <p className="text-xs text-gray-500">{mentor.company}</p>
+                          )}
+                          {mentor.expertise && (
+                            <p className="text-xs text-gray-500">{mentor.expertise}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>

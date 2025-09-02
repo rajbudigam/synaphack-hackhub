@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, AlertTriangle, CheckCircle, Clock, Upload, FileText, Scan, Plus } from "lucide-react";
 import Link from "next/link";
 import { PageContainer } from "@/components/PageContainer";
+import { BackButton } from "@/components/ui/back-button";
 
 async function getPlagiarismReports() {
   try {
@@ -109,14 +110,18 @@ export default async function PlagiarismPage() {
 
   return (
     <PageContainer className="space-y-12" size="lg">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center gap-4 mb-8">
+        <BackButton />
+        <div className="flex-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Shield className="h-8 w-8 text-blue-500" />
             Anti-Plagiarism
           </h1>
           <p className="text-muted-foreground">Ensure code originality and academic integrity</p>
         </div>
+      </div>
+      
+      <div className="flex items-center justify-between">
         <Button asChild>
           <Link href="/plagiarism/scan">
             <Upload className="h-4 w-4 mr-2" />

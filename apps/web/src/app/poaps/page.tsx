@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Target, ExternalLink, Calendar, Users, CheckCircle, Clock, Plus, Coins } from "lucide-react";
 import Link from "next/link";
 import { PageContainer } from "@/components/PageContainer";
+import { BackButton } from "@/components/ui/back-button";
 
 async function getPOAPs() {
   try {
@@ -51,14 +52,18 @@ export default async function POAPsPage() {
 
   return (
     <PageContainer className="space-y-16" size="lg">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center gap-4 mb-8">
+        <BackButton />
+        <div className="flex-1">
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Target className="h-8 w-8 text-purple-500" />
             POAPs
           </h1>
           <p className="text-muted-foreground">Proof of Attendance Protocol - Collect digital memorabilia</p>
         </div>
+      </div>
+      
+      <div className="flex items-center justify-between">
         <Button asChild>
           <Link href="/poaps/mint">
             <Plus className="h-4 w-4 mr-2" />
